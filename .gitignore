@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+
+# Venv
+backend/.venv/
+
+# Env
+backend/.env
+
+# Google credentials
+backend/credentials.json
+
+# Database
+backend/db.sqlite3
