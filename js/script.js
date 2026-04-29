@@ -68,7 +68,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-
 /* AUTOSAVE FORM */
 const formAutoSave = document.querySelector(".reserva-form");
 
@@ -138,6 +137,82 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (!form) return;
 
+    // HORÁRIOS DISPONÍVEIS
+    const dataInput = document.getElementById("data");
+    const containerHoras = document.getElementById("horas-disponiveis");
+
+    let horaSelecionada = null;
+
+    function renderHoras(horas) {
+
+        if (!containerHoras) return;
+
+        containerHoras.innerHTML = "";
+
+        if (!horas || horas.length === 0) {
+
+            containerHoras.innerHTML = "<p>Sem disponibilidade</p>";
+            return;
+
+        }
+
+        horas.forEach(hora => {
+
+            const el = document.createElement("div");
+            el.classList.add("hora-item");
+            el.textContent = hora;
+
+            el.addEventListener("click", () => {
+                selecionarHora(hora, el);
+            });
+
+            containerHoras.appendChild(el);
+
+        });
+
+    }
+
+    function selecionarHora(hora, elemento) {
+
+        horaSelecionada = hora;
+
+        const inputHora = document.getElementById("hora");
+        if (inputHora) inputHora.value = hora;
+
+        document.querySelectorAll(".hora-item").forEach(el => {
+            el.classList.remove("ativa");
+        });
+
+        elemento.classList.add("ativa");
+
+    }
+
+    if (dataInput) {
+
+        dataInput.addEventListener("change", async () => {
+
+            const data = dataInput.value;
+
+            console.log("DATA ESCOLHIDA:", data); // DEBUG
+
+            try {
+
+                const res = await fetch("http://127.0.0.1:8000/api/available-slots/?date=" + data);
+                const dataJson = await res.json();
+
+                console.log("SLOTS RECEBIDOS:", dataJson); // DEBUG
+
+                renderHoras(dataJson);
+
+            } catch (err) {
+
+                console.error("ERRO FETCH:", err);
+
+            }
+
+        });
+
+    }
 
     const steps = document.querySelectorAll(".form-step");
     const nextBtns = document.querySelectorAll(".next-step");
@@ -169,6 +244,11 @@ document.addEventListener("DOMContentLoaded", function () {
     nextBtns.forEach(btn => {
 
         btn.addEventListener("click", function () {
+
+            if (currentStep === 0 && !horaSelecionada) {
+                alert("Escolhe uma hora antes de continuar");
+                return;
+            }
 
             if (currentStep < steps.length - 1) {
 
@@ -213,6 +293,9 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("resumoData").textContent =
             document.getElementById("data").value;
 
+        document.getElementById("resumoHora").textContent =
+            horaSelecionada || "Não selecionada";
+
         document.getElementById("resumoMensagem").textContent =
             document.getElementById("mensagem").value;
 
@@ -224,18 +307,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         document.getElementById("resumoTelefone").textContent =
             document.getElementById("telefone").value;
-
-    }
-
-
-    /* bloquear datas passadas */
-    const dataInput = document.getElementById("data");
-
-    if (dataInput) {
-
-        const today = new Date().toISOString().split("T")[0];
-
-        dataInput.setAttribute("min", today);
 
     }
 
@@ -265,31 +336,33 @@ document.addEventListener("DOMContentLoaded", function () {
         submitBtn.textContent = "A enviar...";
 
 
+        const dataSelecionada = document.getElementById("data").value;
+
+        if (!horaSelecionada) {
+
+            alert("Escolhe uma hora disponível");
+
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Enviar Pedido";
+
+            return;
+        }
+
+        const dataFormatada = dataSelecionada + "T" + horaSelecionada;
+
+
         const dados = {
-
             nome: document.getElementById("nome").value,
-
             email: document.getElementById("email").value,
-
-            telefone: document.getElementById("telefone").value,
-
-            servico: document.getElementById("servico").value,
-
-            modelo_bike: document.getElementById("modeloBike").value,
-
             mensagem: document.getElementById("mensagem").value,
-
-            data: document.getElementById("data").value,
-
-            cookieConsent: consent
-
+            data: dataFormatada
         };
 
 
         try {
 
             // const res = await fetch("https://atxcyclingstore.onrender.com/bookings/",{
-            const res = await fetch("http://127.0.0.1:8000/bookings/",{
+            const res = await fetch("http://127.0.0.1:8000/api/bookings/", {
                 method: "POST",
 
                 headers: {

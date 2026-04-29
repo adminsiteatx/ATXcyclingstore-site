@@ -13,3 +13,9 @@ backend/credentials.json
 
 # Database
 backend/db.sqlite3
+
+# Mac
+.DS_Store
+
+# PyCharm
+.idea/

@@ -1069,6 +1069,24 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     opacity: 1;
 }
 
+.horas-container {
+    margin-top: 10px;
+}
+
+.hora-item {
+    display: inline-block;
+    padding: 8px 12px;
+    margin: 5px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.hora-item.ativa {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
 
 /* ============================= */
 /* CONFIRMAÇÃO */
