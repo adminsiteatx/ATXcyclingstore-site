@@ -15,43 +15,6 @@ class BookingCreateView(generics.CreateAPIView):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
 
-    def perform_create(self, serializer):
-        booking = serializer.save()
-
-        BASE_DIR = Path(__file__).resolve().parent.parent
-
-        creds = service_account.Credentials.from_service_account_file(
-            BASE_DIR / "credentials.json",
-            scopes=["https://www.googleapis.com/auth/calendar"]
-        )
-
-        service = build("calendar", "v3", credentials=creds)
-
-        sync_with_calendar(service, "adminsiteatx@gmail.com")
-
-        cancel_url = f"http://127.0.0.1:8000/api/cancel/{booking.id}/"
-
-        message = f"""
-        Olá {booking.nome},
-
-        A tua marcação foi confirmada.
-
-        Se quiseres cancelar, usa este link:
-        {cancel_url}
-        """
-
-        send_email(
-            booking.email,
-            "Confirmação de marcação",
-            message
-        )
-
-        try:
-            create_calendar_event(booking)
-        except Exception as e:
-            booking.delete()  # rollback
-            raise ValidationError(str(e))
-
 
 class AvailableSlotsView(APIView):
     def get(self, request):

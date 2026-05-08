@@ -189,30 +189,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (dataInput) {
 
-        dataInput.addEventListener("change", async () => {
-
-            const data = dataInput.value;
-
-            console.log("DATA ESCOLHIDA:", data); // DEBUG
-
-            try {
-
-                const res = await fetch("http://127.0.0.1:8000/api/available-slots/?date=" + data);
-                const dataJson = await res.json();
-
-                console.log("SLOTS RECEBIDOS:", dataJson); // DEBUG
-
-                renderHoras(dataJson);
-
-            } catch (err) {
-
-                console.error("ERRO FETCH:", err);
-
-            }
-
+        // quando muda a data
+        dataInput.addEventListener("change", () => {
+            carregarSlots(dataInput.value);
         });
 
+        // carregar automaticamente ao abrir a página
+        const today = new Date().toISOString().split("T")[0];
+
+        const dataInicial = dataInput.value || today;
+
+        dataInput.value = dataInicial;
+
+        carregarSlots(dataInicial);
+
     }
+
+
 
     const steps = document.querySelectorAll(".form-step");
     const nextBtns = document.querySelectorAll(".next-step");
@@ -310,6 +303,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
+
+    async function carregarSlots(data) {
+
+        if (!data || !containerHoras) return;
+
+        containerHoras.innerHTML = "<p>A carregar Horários Disponíveis...</p>";
+
+        try {
+
+            const res = await fetch("http://127.0.0.1:8000/api/available-slots/?date=" + data);
+            const dataJson = await res.json();
+
+            console.log("SLOTS:", dataJson);
+
+            renderHoras(dataJson);
+
+        } catch (err) {
+
+            console.error("Erro ao buscar horários:", err);
+            containerHoras.innerHTML = "<p>Erro ao carregar horários</p>";
+
+        }
+
+    }
 
     /* SUBMIT FINAL */
     form.addEventListener("submit", async function (e) {

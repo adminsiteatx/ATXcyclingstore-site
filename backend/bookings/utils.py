@@ -2,13 +2,11 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.utils.timezone import localtime
 
-
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from datetime import timedelta
 from pathlib import Path
 from .models import Booking
-
 
 
 def send_email(to_email, subject, message):
@@ -19,7 +17,6 @@ def send_email(to_email, subject, message):
         [to_email],
         fail_silently=False,
     )
-
 
 
 def create_calendar_event(booking):
@@ -59,7 +56,7 @@ def create_calendar_event(booking):
     ).execute()
 
     booking.event_id = event["id"]
-    booking.save()
+    booking.save(update_fields=["event_id"])
 
 
 def is_time_available(service, start_time):
@@ -76,15 +73,29 @@ def is_time_available(service, start_time):
 
     return len(events) == 0
 
+
 def sync_with_calendar(service, calendar_id):
-    bookings = Booking.objects.exclude(event_id=None)
+
+    bookings = Booking.objects.exclude(event_id__isnull=True)
 
     for booking in bookings:
+
         try:
-            service.events().get(
+
+            event = service.events().get(
                 calendarId=calendar_id,
                 eventId=booking.event_id
             ).execute()
-        except:
-            # evento não existe → apagar da BD
+
+            # evento apagado/cancelado
+            if event.get("status") == "cancelled":
+
+                booking.delete()
+
+
+        except Exception as e:
+
+            print("EVENTO APAGADO:", booking.event_id)
+            print(e)
+
             booking.delete()
