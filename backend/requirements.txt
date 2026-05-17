@@ -4,6 +4,7 @@ cffi==2.0.0
 charset-normalizer==3.4.7
 cryptography==47.0.0
 Django==6.0.4
+django-cors-headers==4.9.0
 djangorestframework==3.17.1
 google-api-core==2.30.3
 google-api-python-client==2.194.0
