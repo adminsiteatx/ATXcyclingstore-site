@@ -189,22 +189,59 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (dataInput) {
 
+        const hoje = new Date().toISOString().split("T")[0];
+
+        // impedir datas passadas
+        dataInput.min = hoje;
+
+        // bloquear domingos e segundas
+        function dataInvalida(data) {
+
+            const d = new Date(data);
+
+            const diaSemana = d.getDay();
+
+            return diaSemana === 0 || diaSemana === 1;
+
+        }
+
         // quando muda a data
         dataInput.addEventListener("change", () => {
+
+            if (dataInvalida(dataInput.value)) {
+
+                alert("Não fazemos marcações ao domingo nem à segunda.");
+
+                dataInput.value = "";
+
+                containerHoras.innerHTML = "";
+
+                return;
+            }
+
             carregarSlots(dataInput.value);
+
         });
 
-        // carregar automaticamente ao abrir a página
-        const today = new Date().toISOString().split("T")[0];
+        // carregar automaticamente ao abrir
+        let dataInicial = dataInput.value || hoje;
 
-        const dataInicial = dataInput.value || today;
+        // se hoje for domingo ou segunda avança automaticamente
+        while (dataInvalida(dataInicial)) {
+
+            const temp = new Date(dataInicial);
+
+            temp.setDate(temp.getDate() + 1);
+
+            dataInicial = temp.toISOString().split("T")[0];
+
+        }
 
         dataInput.value = dataInicial;
 
         carregarSlots(dataInicial);
 
     }
-
 
 
     const steps = document.querySelectorAll(".form-step");
@@ -567,5 +604,123 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     atualizarEstado();
+
+});
+
+/* ============================= */
+/* GALERIA + LIGHTBOX */
+/* ============================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const imagens = document.querySelectorAll(".grid-galeria img");
+
+    const lightbox = document.getElementById("lightbox");
+    const lightboxImg = document.getElementById("lightbox-img");
+
+    const closeBtn = document.getElementById("close-lightbox");
+
+    const prevBtn = document.querySelector(".prev");
+    const nextBtn = document.querySelector(".next");
+
+    if (!imagens.length) return;
+
+    let currentIndex = 0;
+
+    function abrirImagem(index) {
+
+        currentIndex = index;
+
+        lightbox.style.display = "flex";
+
+        lightboxImg.src = imagens[index].src;
+
+        document.body.style.overflow = "hidden";
+
+    }
+
+    function fecharLightbox() {
+
+        lightbox.style.display = "none";
+
+        document.body.style.overflow = "auto";
+
+    }
+
+    function imagemSeguinte() {
+
+        currentIndex++;
+
+        if (currentIndex >= imagens.length) {
+            currentIndex = 0;
+        }
+
+        lightboxImg.src = imagens[currentIndex].src;
+
+    }
+
+    function imagemAnterior() {
+
+        currentIndex--;
+
+        if (currentIndex < 0) {
+            currentIndex = imagens.length - 1;
+        }
+
+        lightboxImg.src = imagens[currentIndex].src;
+
+    }
+
+    imagens.forEach((img, index) => {
+
+        img.classList.add("show");
+
+        img.addEventListener("click", () => {
+
+            abrirImagem(index);
+
+        });
+
+    });
+
+    closeBtn.addEventListener("click", fecharLightbox);
+
+    nextBtn.addEventListener("click", imagemSeguinte);
+
+    prevBtn.addEventListener("click", imagemAnterior);
+
+    lightbox.addEventListener("click", (e) => {
+
+        if (e.target === lightbox) {
+            fecharLightbox();
+        }
+
+    });
+
+    document.addEventListener("keydown", (e) => {
+
+        if (lightbox.style.display !== "flex") return;
+
+        if (e.key === "ArrowRight") {
+            imagemSeguinte();
+        }
+
+        if (e.key === "ArrowLeft") {
+            imagemAnterior();
+        }
+
+        if (e.key === "Escape") {
+            fecharLightbox();
+        }
+
+        if (e.code === "Space") {
+
+            e.preventDefault();
+
+            fecharLightbox();
+        }
+
+
+    });
 
 });

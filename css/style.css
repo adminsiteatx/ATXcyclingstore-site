@@ -1071,7 +1071,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 
 .horas-container {
     margin-top: 10px;
+    margin-bottom: 10px;
 }
+
+
 
 .hora-item {
     display: inline-block;
