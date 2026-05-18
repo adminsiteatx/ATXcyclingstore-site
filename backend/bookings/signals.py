@@ -27,15 +27,11 @@ def booking_created(sender, instance, created, **kwargs):
         A tua marcação foi confirmada.
         """
 
-        try:
-            send_email(
-                instance.email,
-                "Confirmação de marcação",
-                message
-            )
-
-        except Exception as e:
-            print("ERRO EMAIL:", str(e))
+        #send_email(
+         #   instance.email,
+          #  "Confirmação de marcação",
+           # message
+        #)
 
         print("SIGNAL DISPARADO")
 
