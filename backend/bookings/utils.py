@@ -17,7 +17,7 @@ def send_email(to_email, subject, message):
         message,
         settings.EMAIL_HOST_USER,
         [to_email],
-        fail_silently=False,
+        fail_silently=True,
     )
 
 
