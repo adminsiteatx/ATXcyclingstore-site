@@ -10,6 +10,8 @@ from django.utils.timezone import make_aware
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from pathlib import Path
+import os
+import json
 
 class BookingCreateView(generics.CreateAPIView):
     queryset = Booking.objects.all()
@@ -27,8 +29,10 @@ class AvailableSlotsView(APIView):
 
         BASE_DIR = Path(__file__).resolve().parent.parent
 
-        creds = service_account.Credentials.from_service_account_file(
-            BASE_DIR / "credentials.json",
+        creds_dict = json.loads(os.environ["GOOGLE_CREDENTIALS"])
+
+        creds = service_account.Credentials.from_service_account_info(
+            creds_dict,
             scopes=["https://www.googleapis.com/auth/calendar"]
         )
 
@@ -68,8 +72,10 @@ class CancelBookingView(APIView):
         if booking.event_id:
             BASE_DIR = Path(__file__).resolve().parent.parent
 
-            creds = service_account.Credentials.from_service_account_file(
-                BASE_DIR / "credentials.json",
+            creds_dict = json.loads(os.environ["GOOGLE_CREDENTIALS"])
+
+            creds = service_account.Credentials.from_service_account_info(
+                creds_dict,
                 scopes=["https://www.googleapis.com/auth/calendar"]
             )
 
