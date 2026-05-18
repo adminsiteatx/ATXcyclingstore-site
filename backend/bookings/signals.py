@@ -4,9 +4,11 @@ from django.dispatch import receiver
 from .models import Booking
 from .utils import send_email, create_calendar_event
 from django.db.models.signals import post_save, post_delete
-from pathlib import Path
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+import os
+import json
+
 
 @receiver(post_save, sender=Booking)
 def booking_created(sender, instance, created, **kwargs):
@@ -36,16 +38,15 @@ def booking_created(sender, instance, created, **kwargs):
 
 @receiver(post_delete, sender=Booking)
 def booking_deleted(sender, instance, **kwargs):
-
     if not instance.event_id:
         return
 
     try:
 
-        BASE_DIR = Path(__file__).resolve().parent.parent
+        google_creds = json.loads(os.environ["GOOGLE_CREDENTIALS"])
 
-        creds = service_account.Credentials.from_service_account_file(
-            BASE_DIR / "credentials.json",
+        creds = service_account.Credentials.from_service_account_info(
+            google_creds,
             scopes=["https://www.googleapis.com/auth/calendar"]
         )
 

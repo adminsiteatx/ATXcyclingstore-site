@@ -7,6 +7,8 @@ from googleapiclient.discovery import build
 from datetime import timedelta
 from pathlib import Path
 from .models import Booking
+import os
+import json
 
 
 def send_email(to_email, subject, message):
@@ -20,10 +22,10 @@ def send_email(to_email, subject, message):
 
 
 def create_calendar_event(booking):
-    BASE_DIR = Path(__file__).resolve().parent.parent
+    google_creds = json.loads(os.environ["GOOGLE_CREDENTIALS"])
 
-    creds = service_account.Credentials.from_service_account_file(
-        BASE_DIR / "credentials.json",
+    creds = service_account.Credentials.from_service_account_info(
+        google_creds,
         scopes=["https://www.googleapis.com/auth/calendar"]
     )
 
@@ -31,7 +33,6 @@ def create_calendar_event(booking):
 
     start = localtime(booking.data)
 
-    # 🔒 verificar disponibilidade
     if not is_time_available(service, start):
         raise Exception("Horário já ocupado no calendário.")
 
@@ -75,7 +76,6 @@ def is_time_available(service, start_time):
 
 
 def sync_with_calendar(service, calendar_id):
-
     bookings = Booking.objects.exclude(event_id__isnull=True)
 
     for booking in bookings:
@@ -89,7 +89,6 @@ def sync_with_calendar(service, calendar_id):
 
             # evento apagado/cancelado
             if event.get("status") == "cancelled":
-
                 booking.delete()
 
 
