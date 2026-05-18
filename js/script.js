@@ -1,3 +1,5 @@
+const API_URL = "https://atxcyclingstore.onrender.com";
+
 /* guarda o scroll quando é dado refresh */
 if ("scrollRestoration" in history) {
     history.scrollRestoration = "auto";
@@ -340,8 +342,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
-
-    const API_URL = "https://atxcyclingstore.onrender.com";
 
     async function carregarSlots(data) {
 
