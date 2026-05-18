@@ -341,6 +341,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
+    const API_URL = "https://atxcyclingstore.onrender.com";
+
     async function carregarSlots(data) {
 
         if (!data || !containerHoras) return;
@@ -349,7 +351,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         try {
 
-            const res = await fetch("http://127.0.0.1:8000/api/available-slots/?date=" + data);
+            const res = await fetch(`${API_URL}/api/available-slots/?date=${data}`);
+
             const dataJson = await res.json();
 
             console.log("SLOTS:", dataJson);
@@ -359,6 +362,7 @@ document.addEventListener("DOMContentLoaded", function () {
         } catch (err) {
 
             console.error("Erro ao buscar horários:", err);
+
             containerHoras.innerHTML = "<p>Erro ao carregar horários</p>";
 
         }
@@ -416,7 +420,7 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
 
             // const res = await fetch("https://atxcyclingstore.onrender.com/bookings/",{
-            const res = await fetch("http://127.0.0.1:8000/api/bookings/", {
+            const res = await fetch(`${API_URL}/api/bookings/`, {
                 method: "POST",
 
                 headers: {

@@ -9,10 +9,8 @@ backend/.venv/
 backend/.env
 
 # Google credentials
-backend/credentials.json
 
 # Database
-backend/db.sqlite3
 
 # Mac
 .DS_Store
