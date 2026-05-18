@@ -9,6 +9,7 @@ backend/.venv/
 backend/.env
 
 # Google credentials
+backend/credentials.json
 
 # Database
 
