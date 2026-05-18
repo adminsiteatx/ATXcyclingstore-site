@@ -4,6 +4,8 @@ from .models import Booking
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from pathlib import Path
+import os
+import json
 
 from .utils import sync_with_calendar
 from django import forms
@@ -22,10 +24,10 @@ class BookingAdminForm(forms.ModelForm):
 
         data = self.cleaned_data["data"]
 
-        BASE_DIR = Path(__file__).resolve().parent.parent
+        creds_dict = json.loads(os.environ["GOOGLE_CREDENTIALS"])
 
-        creds = service_account.Credentials.from_service_account_file(
-            BASE_DIR / "credentials.json",
+        creds = service_account.Credentials.from_service_account_info(
+            creds_dict,
             scopes=["https://www.googleapis.com/auth/calendar"]
         )
 
@@ -51,10 +53,10 @@ class BookingAdmin(admin.ModelAdmin):
 
         # print("ADMIN OPENED")
 
-        BASE_DIR = Path(__file__).resolve().parent.parent
+        creds_dict = json.loads(os.environ["GOOGLE_CREDENTIALS"])
 
-        creds = service_account.Credentials.from_service_account_file(
-            BASE_DIR / "credentials.json",
+        creds = service_account.Credentials.from_service_account_info(
+            creds_dict,
             scopes=["https://www.googleapis.com/auth/calendar"]
         )
 
