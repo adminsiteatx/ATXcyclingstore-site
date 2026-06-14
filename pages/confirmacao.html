@@ -79,18 +79,30 @@
         <h1>Pedido Recebido</h1>
 
         <p class="confirmacao-mensagem">
-            O seu pedido de marcação foi submetido com sucesso.
+            A tua marcação foi registada com sucesso.
         </p>
 
-        <p class="confirmacao-info">
+        <div id="confirmacaoDetalhes" style="display:none;margin:24px 0;text-align:left;
+             background:#111;border:1px solid #222;border-radius:10px;padding:20px 24px">
+            <p style="margin:0 0 6px 0;font-size:13px;color:#666">Número de pedido</p>
+            <p id="confNumeroPedido" style="margin:0 0 18px 0;font-size:20px;font-weight:600;color:#0077cc"></p>
+            <p style="margin:0 0 10px 0;font-size:14px;color:#aaa">
+                Receberás em breve um email com o link de acompanhamento.
+                Podes também consultar o estado aqui:
+            </p>
+            <a id="confTrackingLink" href="#"
+               style="display:inline-block;background:#0077cc;color:white;padding:10px 20px;
+                      border-radius:6px;text-decoration:none;font-size:14px;font-weight:500">
+                Acompanhar a minha bicicleta
+            </a>
+        </div>
 
-            A nossa equipa irá verificar a disponibilidade da oficina e
-            entrará em contacto consigo brevemente para confirmar a data
-            e os detalhes da intervenção.
-
+        <p class="confirmacao-info" id="confInfoFallback">
+            Receberás um email com o número de pedido e um link para acompanhar
+            o estado da tua bicicleta em tempo real.
         </p>
 
-        <a href="../index.html" class="btn-primary">
+        <a href="../index.html" class="btn-primary" style="margin-top:16px">
             Voltar ao Início
         </a>
 
@@ -107,7 +119,23 @@
 </footer>
 
 <script src="../js/script.js"></script>
-
+<script>
+    const FRONTEND_URL = "https://atxcyclingstore.vercel.app";
+    const raw = sessionStorage.getItem('booking_confirmacao');
+    if (raw) {
+        try {
+            const b = JSON.parse(raw);
+            document.getElementById('confNumeroPedido').textContent = b.numero_pedido;
+            document.getElementById('confTrackingLink').href =
+                `${FRONTEND_URL}/pages/tracking.html?token=${b.token_tracking}`;
+            document.getElementById('confirmacaoDetalhes').style.display = 'block';
+            document.getElementById('confInfoFallback').style.display = 'none';
+            sessionStorage.removeItem('booking_confirmacao');
+        } catch (e) {
+            console.error(e);
+        }
+    }
+</script>
 
 </body>
 </html>

@@ -1,65 +1,154 @@
-from rest_framework import generics
-from .models import Booking
-from .serializers import BookingSerializer
-from .utils import send_email, create_calendar_event, sync_with_calendar
-from rest_framework.exceptions import ValidationError
+from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from datetime import datetime, timedelta
-from django.utils.timezone import make_aware
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
-from pathlib import Path
-import os
-import json
+from django.shortcuts import get_object_or_404
+from django.contrib.auth import authenticate
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.utils import timezone
+import datetime
+
+from .models import Booking, CapacidadeSemanal
+from .serializers import BookingSerializer, bookings_na_semana, get_capacidade
+
+
+# ---------------------------------------------------------------------------
+# Criar marcação
+# ---------------------------------------------------------------------------
 
 class BookingCreateView(generics.CreateAPIView):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
 
 
-class AvailableSlotsView(APIView):
+# ---------------------------------------------------------------------------
+# Semanas disponíveis (próximas 8 semanas)
+# ---------------------------------------------------------------------------
+
+class AvailableWeeksView(APIView):
     def get(self, request):
-        date_str = request.GET.get("date")
+        hoje = timezone.localdate()
+        capacidade = get_capacidade()
+        semanas = []
 
-        if not date_str:
-            return Response({"error": "Missing date"}, status=400)
+        for i in range(8):
+            # próximas 8 semanas a partir da semana atual
+            inicio = hoje - datetime.timedelta(days=hoje.weekday()) + datetime.timedelta(weeks=i)
+            fim = inicio + datetime.timedelta(days=4)  # sexta-feira
 
-        date = datetime.strptime(date_str, "%Y-%m-%d")
+            # não mostrar semanas que já terminaram
+            if fim < hoje:
+                continue
 
-        BASE_DIR = Path(__file__).resolve().parent.parent
+            total = bookings_na_semana(inicio)
+            disponiveis = capacidade - total
 
-        creds_dict = json.loads(os.environ["GOOGLE_CREDENTIALS"])
+            semanas.append({
+                "semana_inicio": inicio.isoformat(),  # segunda
+                "semana_fim": fim.isoformat(),  # sexta
+                "disponiveis": max(0, disponiveis),
+                "capacidade": capacidade,
+                "cheia": disponiveis <= 0,
+            })
 
-        creds = service_account.Credentials.from_service_account_info(
-            creds_dict,
-            scopes=["https://www.googleapis.com/auth/calendar"]
-        )
-
-        service = build("calendar", "v3", credentials=creds)
-        sync_with_calendar(service, "adminsiteatx@gmail.com")
-
-        available_slots = []
+        return Response(semanas)
 
 
-        for hour in range(9, 19):
-            start = make_aware(datetime(
-                date.year, date.month, date.day, hour, 0
-            ))
-            end = start + timedelta(hours=1)
+# ---------------------------------------------------------------------------
+# Tracking por token UUID (link no email)
+# ---------------------------------------------------------------------------
 
-            events = service.events().list(
-                calendarId="adminsiteatx@gmail.com",
-                timeMin=start.isoformat(),
-                timeMax=end.isoformat(),
-                singleEvents=True
-            ).execute().get("items", [])
+class TrackingByTokenView(APIView):
+    def get(self, request, token):
+        booking = get_object_or_404(Booking, token_tracking=token)
+        return Response({
+            "numero_pedido": booking.numero_pedido,
+            "nome": booking.nome,
+            "estado": booking.estado,
+            "estado_label": booking.get_estado_display(),
+            "data": booking.data.isoformat(),
+            "criado_em": booking.criado_em.isoformat(),
+        })
 
-            if len(events) == 0:
-                available_slots.append(f"{hour:02d}:00")
 
-        return Response(available_slots)
+# ---------------------------------------------------------------------------
+# Tracking por número de pedido (página pública)
+# ---------------------------------------------------------------------------
 
+class TrackingByNumeroView(APIView):
+    def get(self, request, numero):
+        booking = get_object_or_404(Booking, numero_pedido=numero.upper())
+        return Response({
+            "numero_pedido": booking.numero_pedido,
+            "nome": booking.nome,
+            "estado": booking.estado,
+            "estado_label": booking.get_estado_display(),
+            "data": booking.data.isoformat(),
+            "criado_em": booking.criado_em.isoformat(),
+        })
+
+
+# ---------------------------------------------------------------------------
+# Gestão — listar todas as marcações (protegida por token simples)
+# ---------------------------------------------------------------------------
+
+GESTAO_TOKEN = "atx-gestao-2025"  # mover para .env em produção
+
+
+def check_gestao_auth(request):
+    token = request.headers.get("X-Gestao-Token", "")
+    return token == GESTAO_TOKEN
+
+
+class GestaoListView(APIView):
+    def get(self, request):
+        if not check_gestao_auth(request):
+            return Response({"error": "Não autorizado"}, status=401)
+
+        bookings = Booking.objects.all().order_by("-criado_em")
+        data = [{
+            "id": b.id,
+            "numero_pedido": b.numero_pedido,
+            "nome": b.nome,
+            "email": b.email,
+            "data": b.data.isoformat(),
+            "estado": b.estado,
+            "estado_label": b.get_estado_display(),
+            "criado_em": b.criado_em.isoformat(),
+        } for b in bookings]
+        return Response(data)
+
+
+# ---------------------------------------------------------------------------
+# Gestão — atualizar estado de uma marcação
+# ---------------------------------------------------------------------------
+
+class GestaoUpdateEstadoView(APIView):
+    def patch(self, request, booking_id):
+        if not check_gestao_auth(request):
+            return Response({"error": "Não autorizado"}, status=401)
+
+        booking = get_object_or_404(Booking, id=booking_id)
+
+        novo_estado = request.data.get("estado")
+        estados_validos = [e[0] for e in Booking.ESTADO_CHOICES]
+
+        if novo_estado not in estados_validos:
+            return Response({"error": f"Estado inválido. Opções: {estados_validos}"}, status=400)
+
+        booking.estado = novo_estado
+        booking.save(update_fields=["estado"])
+
+        return Response({
+            "id": booking.id,
+            "estado": booking.estado,
+            "estado_label": booking.get_estado_display(),
+        })
+
+
+# ---------------------------------------------------------------------------
+# Cancelar marcação (mantido do original)
+# ---------------------------------------------------------------------------
 
 class CancelBookingView(APIView):
     def get(self, request, booking_id):
@@ -68,24 +157,5 @@ class CancelBookingView(APIView):
         except Booking.DoesNotExist:
             return Response({"error": "Booking não encontrado"}, status=404)
 
-        # apagar evento do calendar
-        if booking.event_id:
-            BASE_DIR = Path(__file__).resolve().parent.parent
-
-            creds_dict = json.loads(os.environ["GOOGLE_CREDENTIALS"])
-
-            creds = service_account.Credentials.from_service_account_info(
-                creds_dict,
-                scopes=["https://www.googleapis.com/auth/calendar"]
-            )
-
-            service = build("calendar", "v3", credentials=creds)
-
-            service.events().delete(
-                calendarId="adminsiteatx@gmail.com",
-                eventId=booking.event_id
-            ).execute()
-
         booking.delete()
-
         return Response({"message": "Marcação cancelada com sucesso"})

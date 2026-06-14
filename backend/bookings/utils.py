@@ -1,27 +1,14 @@
-from django.core.mail import send_mail
-from django.conf import settings
-from django.utils.timezone import localtime
-
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-from datetime import timedelta
-from pathlib import Path
+from datetime import datetime, timedelta
 from .models import Booking
+
 import os
 import json
 
 
-def send_email(to_email, subject, message):
-    send_mail(
-        subject,
-        message,
-        settings.EMAIL_HOST_USER,
-        [to_email],
-        fail_silently=True,
-    )
-
-
 def create_calendar_event(booking):
+    """Cria um evento no Google Calendar para a semana da marcação."""
     google_creds = json.loads(os.environ["GOOGLE_CREDENTIALS"])
 
     creds = service_account.Credentials.from_service_account_info(
@@ -31,23 +18,17 @@ def create_calendar_event(booking):
 
     service = build("calendar", "v3", credentials=creds)
 
-    start = localtime(booking.data)
-
-    if not is_time_available(service, start):
-        raise Exception("Horário já ocupado no calendário.")
-
-    end = start + timedelta(hours=1)
+    # usar a data da marcação como evento de dia inteiro
+    data_str = booking.data.isoformat()
 
     event = {
-        "summary": f"Marcação - {booking.nome}",
-        "description": booking.mensagem,
+        "summary": f"Marcação — {booking.nome}",
+        "description": booking.mensagem or "",
         "start": {
-            "dateTime": start.isoformat(),
-            "timeZone": "Europe/Lisbon",
+            "date": data_str,
         },
         "end": {
-            "dateTime": end.isoformat(),
-            "timeZone": "Europe/Lisbon",
+            "date": data_str,
         },
     }
 
@@ -60,41 +41,20 @@ def create_calendar_event(booking):
     booking.save(update_fields=["event_id"])
 
 
-def is_time_available(service, start_time):
-    end_time = start_time + timedelta(hours=1)
-
-    events_result = service.events().list(
-        calendarId="adminsiteatx@gmail.com",
-        timeMin=start_time.isoformat(),
-        timeMax=end_time.isoformat(),
-        singleEvents=True
-    ).execute()
-
-    events = events_result.get('items', [])
-
-    return len(events) == 0
-
-
 def sync_with_calendar(service, calendar_id):
-    bookings = Booking.objects.exclude(event_id__isnull=True)
+    """Remove do DB marcações cujo evento foi apagado manualmente no Calendar."""
+    bookings = Booking.objects.exclude(event_id__isnull=True).exclude(event_id="")
 
     for booking in bookings:
-
         try:
-
             event = service.events().get(
                 calendarId=calendar_id,
                 eventId=booking.event_id
             ).execute()
 
-            # evento apagado/cancelado
             if event.get("status") == "cancelled":
                 booking.delete()
 
-
         except Exception as e:
-
-            print("EVENTO APAGADO:", booking.event_id)
-            print(e)
-
+            print("EVENTO APAGADO:", booking.event_id, e)
             booking.delete()

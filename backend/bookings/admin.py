@@ -1,67 +1,31 @@
 from django.contrib import admin
-from .models import Booking
+from .models import Booking, CapacidadeSemanal
 
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
-from pathlib import Path
-import os
-import json
 
-from .utils import sync_with_calendar
-from django import forms
-from django.core.exceptions import ValidationError
-from django.utils.timezone import localtime
+@admin.register(CapacidadeSemanal)
+class CapacidadeSemanalAdmin(admin.ModelAdmin):
+    list_display = ("capacidade", "atualizado_em")
 
-from .utils import is_time_available
+    def has_add_permission(self, request):
+        # só existe 1 registo
+        return not CapacidadeSemanal.objects.exists()
 
-class BookingAdminForm(forms.ModelForm):
-
-    class Meta:
-        model = Booking
-        fields = "__all__"
-
-    def clean_data(self):
-
-        data = self.cleaned_data["data"]
-
-        creds_dict = json.loads(os.environ["GOOGLE_CREDENTIALS"])
-
-        creds = service_account.Credentials.from_service_account_info(
-            creds_dict,
-            scopes=["https://www.googleapis.com/auth/calendar"]
-        )
-
-        service = build("calendar", "v3", credentials=creds)
-
-        data_local = localtime(data)
-
-        if not is_time_available(service, data_local):
-
-            raise ValidationError(
-                "Já existe uma marcação nesse horário."
-            )
-
-        return data
 
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
-    form = BookingAdminForm
+    list_display = ("numero_pedido", "nome", "email", "data", "estado", "criado_em")
+    list_filter = ("estado", "data")
+    search_fields = ("nome", "email", "numero_pedido")
+    readonly_fields = ("numero_pedido", "token_tracking", "criado_em", "event_id")
 
-    list_display = ("nome", "email", "data")
-
-    def changelist_view(self, request, extra_context=None):
-
-        # print("ADMIN OPENED")
-
-        creds_dict = json.loads(os.environ["GOOGLE_CREDENTIALS"])
-
-        creds = service_account.Credentials.from_service_account_info(
-            creds_dict,
-            scopes=["https://www.googleapis.com/auth/calendar"]
-        )
-
-        service = build("calendar", "v3", credentials=creds)
-
-        sync_with_calendar(service, "adminsiteatx@gmail.com")
-
-        return super().changelist_view(request, extra_context)
+    fieldsets = (
+        ("Cliente", {
+            "fields": ("nome", "email", "mensagem")
+        }),
+        ("Marcação", {
+            "fields": ("data", "numero_pedido", "event_id", "criado_em")
+        }),
+        ("Tracking", {
+            "fields": ("estado", "token_tracking")
+        }),
+    )

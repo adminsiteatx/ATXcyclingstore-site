@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acompanhar Marcação | ATXcyclingstore</title>
+    <link rel="icon" type="image/png" href="../favicon_black.png">
+    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <style>
+        .tracking-section {
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+        }
+
+        .tracking-container {
+            width: 100%;
+            max-width: 580px;
+        }
+
+        .tracking-container h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .tracking-intro {
+            color: #aaa;
+            margin-bottom: 36px;
+        }
+
+        /* pesquisa por número */
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 40px;
+        }
+
+        .search-box input {
+            flex: 1;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 12px 16px;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            font-size: 15px;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #0077cc;
+            box-shadow: 0 0 0 1px #0077cc;
+        }
+
+        .search-box button {
+            background: #0077cc;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+
+        .search-box button:hover {
+            background: #005fa3;
+        }
+
+        /* card resultado */
+        .tracking-card {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 28px;
+            display: none;
+        }
+
+        .tracking-card.visible {
+            display: block;
+        }
+
+        .tracking-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tracking-pedido {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        .tracking-nome {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .tracking-data {
+            font-size: 13px;
+            color: #aaa;
+            margin-top: 4px;
+        }
+
+        /* badge de estado */
+        .estado-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .estado-recebida {
+            background: #1a1a2e;
+            color: #7b8cde;
+            border: 1px solid #3a4280;
+        }
+
+        .estado-diagnostico {
+            background: #1a2a1a;
+            color: #6dbe6d;
+            border: 1px solid #2e5e2e;
+        }
+
+        .estado-reparacao {
+            background: #2a1a00;
+            color: #f0a030;
+            border: 1px solid #6e4a00;
+        }
+
+        .estado-pronta {
+            background: #002a10;
+            color: #30d060;
+            border: 1px solid #006030;
+        }
+
+        .estado-entregue {
+            background: #1a1a1a;
+            color: #888;
+            border: 1px solid #333;
+        }
+
+        /* stepper */
+        .stepper {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .stepper-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            position: relative;
+        }
+
+        .stepper-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 32px;
+            width: 2px;
+            height: calc(100% - 8px);
+            background: #222;
+        }
+
+        .stepper-item.done::after,
+        .stepper-item.active::after {
+            background: #0077cc;
+        }
+
+        .stepper-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 14px;
+            background: #0a0a0a;
+            z-index: 1;
+        }
+
+        .stepper-item.done .stepper-icon {
+            border-color: #0077cc;
+            background: #0077cc;
+            color: white;
+        }
+
+        .stepper-item.active .stepper-icon {
+            border-color: #0077cc;
+            color: #0077cc;
+        }
+
+        .stepper-text {
+            padding: 4px 0 24px 0;
+        }
+
+        .stepper-label {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .stepper-item.inactive .stepper-label {
+            color: #555;
+        }
+
+        .stepper-desc {
+            font-size: 13px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .error-msg {
+            color: #ff6b6b;
+            font-size: 14px;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .error-msg.visible {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <nav class="navbar">
+        <a href="../index.html" class="logo">
+            <img src="../images/atx.png" alt="Logo">
+        </a>
+        <ul class="nav-links">
+            <li><a href="../index.html" class="nav-link">Início</a></li>
+            <li><a href="servicos.html" class="nav-link">Serviços</a></li>
+            <li><a href="marcas.html" class="nav-link">Marcas</a></li>
+            <li><a href="galeria.html" class="nav-link">Galeria</a></li>
+            <li><a href="contactos.html" class="nav-link">Contactos</a></li>
+        </ul>
+        <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+    </nav>
+</header>
+
+<section class="tracking-section">
+    <div class="tracking-container">
+
+        <h1>Acompanhar Bicicleta</h1>
+        <p class="tracking-intro">
+            Introduz o número de pedido (ex: <strong>ATX-2025-0001</strong>) para ver o estado da tua bicicleta.
+        </p>
+
+        <div class="search-box">
+            <input type="text" id="inputNumero" placeholder="ATX-2025-0001" autocomplete="off">
+            <button onclick="pesquisar()">Pesquisar</button>
+        </div>
+        <p class="error-msg" id="errorMsg">Pedido não encontrado. Verifica o número e tenta novamente.</p>
+
+        <!-- resultado -->
+        <div class="tracking-card" id="trackingCard">
+
+            <div class="tracking-card-header">
+                <div>
+                    <p class="tracking-pedido" id="cardPedido"></p>
+                    <p class="tracking-nome" id="cardNome"></p>
+                    <p class="tracking-data" id="cardData"></p>
+                </div>
+                <span class="estado-badge" id="cardBadge"></span>
+            </div>
+
+            <div class="stepper" id="stepper"></div>
+
+        </div>
+
+    </div>
+</section>
+
+<footer>
+    <p>© ATXcyclingstore</p>
+    <p>Projeto demonstrativo. Não é o site oficial da empresa.</p>
+    <a href="/pages/privacy.html">Política de Privacidade</a>
+</footer>
+
+<script src="../js/script.js"></script>
+<script>
+    const API_URL = "https://atxcyclingstore.onrender.com";
+
+    const ESTADOS = [
+        {key: 'recebida', label: 'Recebida', desc: 'A tua bicicleta chegou à nossa oficina.'},
+        {key: 'diagnostico', label: 'Em Diagnóstico', desc: 'O mecânico está a avaliar o estado da bicicleta.'},
+        {key: 'reparacao', label: 'Em Reparação', desc: 'A intervenção está em curso.'},
+        {key: 'pronta', label: 'Pronta', desc: 'A bicicleta está pronta para levantamento.'},
+        {key: 'entregue', label: 'Entregue', desc: 'Bicicleta entregue ao cliente.'},
+    ];
+
+    function estadoClass(key) {
+        return `estado-${key}`;
+    }
+
+    function renderStepper(estadoAtual) {
+        const container = document.getElementById('stepper');
+        container.innerHTML = '';
+
+        const idx = ESTADOS.findIndex(e => e.key === estadoAtual);
+
+        ESTADOS.forEach((e, i) => {
+            const done = i < idx;
+            const active = i === idx;
+            const cls = done ? 'done' : active ? 'active' : 'inactive';
+
+            const icon = done ? '<i class="bi bi-check"></i>' : (i + 1);
+
+            container.innerHTML += `
+        <div class="stepper-item ${cls}">
+          <div class="stepper-icon">${icon}</div>
+          <div class="stepper-text">
+            <p class="stepper-label">${e.label}</p>
+            ${active ? `<p class="stepper-desc">${e.desc}</p>` : ''}
+          </div>
+        </div>`;
+        });
+    }
+
+    function mostrarResultado(data) {
+        document.getElementById('cardPedido').textContent = data.numero_pedido;
+        document.getElementById('cardNome').textContent = data.nome;
+        document.getElementById('cardData').textContent =
+            'Entrega prevista: ' + new Date(data.data).toLocaleDateString('pt-PT', {
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric'
+            });
+
+        const badge = document.getElementById('cardBadge');
+        badge.textContent = data.estado_label;
+        badge.className = `estado-badge ${estadoClass(data.estado)}`;
+
+        renderStepper(data.estado);
+
+        document.getElementById('trackingCard').classList.add('visible');
+        document.getElementById('errorMsg').classList.remove('visible');
+    }
+
+    async function pesquisar() {
+        const numero = document.getElementById('inputNumero').value.trim();
+        if (!numero) return;
+
+        document.getElementById('trackingCard').classList.remove('visible');
+        document.getElementById('errorMsg').classList.remove('visible');
+
+        try {
+            const res = await fetch(`${API_URL}/api/tracking/${encodeURIComponent(numero)}/`);
+            if (!res.ok) throw new Error('not found');
+            const data = await res.json();
+            mostrarResultado(data);
+        } catch {
+            document.getElementById('errorMsg').classList.add('visible');
+        }
+    }
+
+    // carregar por token se vier no URL  (?token=uuid)
+    async function carregarPorToken() {
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token');
+        if (!token) return;
+
+        try {
+            const res = await fetch(`${API_URL}/api/tracking/token/${token}/`);
+            if (!res.ok) return;
+            const data = await res.json();
+            document.getElementById('inputNumero').value = data.numero_pedido;
+            mostrarResultado(data);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    document.getElementById('inputNumero').addEventListener('keydown', e => {
+        if (e.key === 'Enter') pesquisar();
+    });
+
+    carregarPorToken();
+</script>
+
+</body>
+</html>
