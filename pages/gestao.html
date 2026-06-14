@@ -292,6 +292,7 @@
 
         <div class="filtros" id="filtros">
             <button class="filtro-btn active" data-estado="todos" onclick="filtrar(this)">Todos</button>
+            <button class="filtro-btn" data-estado="marcada" onclick="filtrar(this)">Marcação Efetuada</button>
             <button class="filtro-btn" data-estado="recebida" onclick="filtrar(this)">Recebida</button>
             <button class="filtro-btn" data-estado="diagnostico" onclick="filtrar(this)">Em Diagnóstico</button>
             <button class="filtro-btn" data-estado="reparacao" onclick="filtrar(this)">Em Reparação</button>
@@ -309,6 +310,7 @@
     const GESTAO_TOKEN = "atx-gestao-2025";  // deve ser igual ao views.py
 
     const ESTADOS = [
+        {key: 'marcada', label: 'Marcação Efetuada'},
         {key: 'recebida', label: 'Recebida'},
         {key: 'diagnostico', label: 'Em Diagnóstico'},
         {key: 'reparacao', label: 'Em Reparação'},

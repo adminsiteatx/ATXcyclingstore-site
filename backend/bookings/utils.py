@@ -8,7 +8,8 @@ import json
 
 
 def create_calendar_event(booking):
-    """Cria um evento no Google Calendar para o dia da marcação (09:00–10:00)."""
+    """Cria um evento no Google Calendar para o dia da marcação.
+    Slots consecutivos a partir das 09:00 por ordem de chegada."""
     google_creds = json.loads(os.environ["GOOGLE_CREDENTIALS"])
 
     creds = service_account.Credentials.from_service_account_info(
@@ -20,15 +21,20 @@ def create_calendar_event(booking):
 
     data_str = booking.data.isoformat()
 
+    # conta quantas marcações já existem nesse dia (excluindo esta)
+    slot = Booking.objects.filter(data=booking.data).exclude(pk=booking.pk).count()
+    hora_inicio = 9 + slot
+    hora_fim    = hora_inicio + 1
+
     event = {
         "summary": f"Marcação — {booking.nome}",
         "description": booking.mensagem or "",
         "start": {
-            "dateTime": f"{data_str}T09:00:00",
+            "dateTime": f"{data_str}T{hora_inicio:02d}:00:00",
             "timeZone": "Europe/Lisbon",
         },
         "end": {
-            "dateTime": f"{data_str}T10:00:00",
+            "dateTime": f"{data_str}T{hora_fim:02d}:00:00",
             "timeZone": "Europe/Lisbon",
         },
     }

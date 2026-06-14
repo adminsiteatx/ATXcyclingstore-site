@@ -76,7 +76,7 @@ class AvailableDaysView(APIView):
         capacidade = get_capacidade()
         dias = []
 
-        for i in range(8):
+        for i in range(5):
             segunda = hoje - datetime.timedelta(days=hoje.weekday()) + datetime.timedelta(weeks=i)
             sabado  = segunda + datetime.timedelta(days=5)
 

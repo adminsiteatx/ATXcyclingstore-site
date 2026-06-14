@@ -122,6 +122,12 @@
             white-space: nowrap;
         }
 
+        .estado-marcada {
+            background: #1a1a1a;
+            color: #aaa;
+            border: 1px solid #444;
+        }
+
         .estado-recebida {
             background: #1a1a2e;
             color: #7b8cde;
@@ -297,9 +303,8 @@
 
 <script src="../js/script.js"></script>
 <script>
-    const API_URL = "https://atxcyclingstore.onrender.com";
-
     const ESTADOS = [
+        {key: 'marcada', label: 'Marcação Efetuada', desc: 'A tua marcação foi registada. Aguardamos a entrega da bicicleta na loja.'},
         {key: 'recebida', label: 'Recebida', desc: 'A tua bicicleta chegou à nossa oficina.'},
         {key: 'diagnostico', label: 'Em Diagnóstico', desc: 'O mecânico está a avaliar o estado da bicicleta.'},
         {key: 'reparacao', label: 'Em Reparação', desc: 'A intervenção está em curso.'},

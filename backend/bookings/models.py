@@ -17,6 +17,7 @@ class CapacidadeSemanal(models.Model):
 
 class Booking(models.Model):
     ESTADO_CHOICES = [
+        ('marcada', 'Marcação Efetuada'),
         ('recebida', 'Recebida'),
         ('diagnostico', 'Em Diagnóstico'),
         ('reparacao', 'Em Reparação'),
@@ -32,7 +33,7 @@ class Booking(models.Model):
     criado_em = models.DateTimeField(auto_now_add=True)
 
     # tracking
-    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='recebida')
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='marcada')
     token_tracking = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     numero_pedido = models.CharField(max_length=20, blank=True)  # ex: ATX-2025-0042
 
