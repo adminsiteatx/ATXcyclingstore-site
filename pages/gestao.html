@@ -285,7 +285,15 @@
 
     <div class="dash-header">
         <h1>Gestão de Marcações</h1>
-        <button onclick="logout()"><i class="bi bi-box-arrow-right"></i> Sair</button>
+        <div style="display:flex;gap:10px;align-items:center">
+            <button onclick="sincronizar()" id="syncBtn" title="Sincronizar com Google Calendar">
+                <i class="bi bi-arrow-repeat"></i> Sync Calendar
+            </button>
+            <button onclick="carregar()" title="Recarregar lista">
+                <i class="bi bi-arrow-clockwise"></i>
+            </button>
+            <button onclick="logout()"><i class="bi bi-box-arrow-right"></i> Sair</button>
+        </div>
     </div>
 
     <div class="dash-body">
@@ -348,14 +356,45 @@
 
     // ── Carregar marcações ────────────────────────────────────────────────
     async function carregar() {
+        const grid = document.getElementById('bookingsGrid');
+        grid.innerHTML = '<div class="empty-state"><p style="color:#555">A carregar...</p></div>';
         try {
             const res = await fetch(`${API_URL}/api/gestao/bookings/`, {
                 headers: {"X-Gestao-Token": GESTAO_TOKEN}
             });
-            allBookings = await res.json();
+            if (!res.ok) {
+                grid.innerHTML = `<div class="empty-state"><p style="color:#ff6b6b">Erro ${res.status} — token inválido ou servidor indisponível.</p></div>`;
+                return;
+            }
+            const data = await res.json();
+            allBookings = Array.isArray(data) ? data : [];
             renderBookings();
         } catch (e) {
+            grid.innerHTML = '<div class="empty-state"><p style="color:#ff6b6b">Erro de ligação ao servidor.</p></div>';
             console.error('Erro ao carregar:', e);
+        }
+    }
+
+    // ── Sincronizar Calendar → DB ─────────────────────────────────────────
+    async function sincronizar() {
+        const btn = document.getElementById('syncBtn');
+        btn.textContent = 'A sincronizar...';
+        btn.disabled = true;
+        try {
+            const res = await fetch(`${API_URL}/api/gestao/sync-calendar/`, {
+                method: 'POST',
+                headers: {"X-Gestao-Token": GESTAO_TOKEN}
+            });
+            const data = await res.json();
+            btn.textContent = `✓ ${data.eliminadas} eliminada(s)`;
+            setTimeout(() => {
+                btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Sync Calendar';
+                btn.disabled = false;
+            }, 3000);
+            carregar();
+        } catch {
+            btn.textContent = 'Erro';
+            btn.disabled = false;
         }
     }
 
@@ -410,6 +449,10 @@
             <button class="save-btn" id="save-${b.id}" onclick="guardarEstado(${b.id})">
               Guardar alteração
             </button>
+            <button class="save-btn visible" id="del-${b.id}" onclick="eliminar(${b.id})"
+              style="background:#2a0a0a;color:#ff6b6b;border-color:#5a1a1a;margin-top:4px">
+              <i class="bi bi-trash"></i> Eliminar
+            </button>
           </div>
         </div>`;
         });
@@ -417,6 +460,29 @@
 
     function mostrarGuardar(id) {
         document.getElementById(`save-${id}`).classList.add('visible');
+    }
+
+    async function eliminar(id) {
+        if (!confirm('Tens a certeza que queres eliminar esta marcação?')) return;
+        const btn = document.getElementById(`del-${id}`);
+        btn.textContent = 'A eliminar...';
+        btn.disabled = true;
+        try {
+            const res = await fetch(`${API_URL}/api/gestao/bookings/${id}/delete/`, {
+                method: 'DELETE',
+                headers: {"X-Gestao-Token": GESTAO_TOKEN}
+            });
+            if (res.ok) {
+                document.getElementById(`row-${id}`).remove();
+                allBookings = allBookings.filter(b => b.id !== id);
+            } else {
+                btn.textContent = 'Erro';
+                btn.disabled = false;
+            }
+        } catch {
+            btn.textContent = 'Erro';
+            btn.disabled = false;
+        }
     }
 
     async function guardarEstado(id) {

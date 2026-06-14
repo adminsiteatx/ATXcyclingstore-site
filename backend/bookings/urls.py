@@ -7,6 +7,7 @@ from .views import (
     GestaoListView,
     GestaoUpdateEstadoView,
     CancelBookingView,
+    SyncCalendarView,
 )
 
 urlpatterns = [
@@ -24,4 +25,6 @@ urlpatterns = [
     # gestão interna
     path('gestao/bookings/', GestaoListView.as_view()),
     path('gestao/bookings/<int:booking_id>/estado/', GestaoUpdateEstadoView.as_view()),
+    path('gestao/bookings/<int:booking_id>/delete/', CancelBookingView.as_view()),
+    path('gestao/sync-calendar/', SyncCalendarView.as_view()),
 ]

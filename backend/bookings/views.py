@@ -196,15 +196,55 @@ class GestaoUpdateEstadoView(APIView):
 
 
 # ---------------------------------------------------------------------------
-# Cancelar marcação (mantido do original)
+# Cancelar marcação
 # ---------------------------------------------------------------------------
 
 class CancelBookingView(APIView):
-    def get(self, request, booking_id):
+    def delete(self, request, booking_id):
+        if not check_gestao_auth(request):
+            return Response({"error": "Não autorizado"}, status=401)
         try:
             booking = Booking.objects.get(id=booking_id)
         except Booking.DoesNotExist:
             return Response({"error": "Booking não encontrado"}, status=404)
-
         booking.delete()
         return Response({"message": "Marcação cancelada com sucesso"})
+
+
+# ---------------------------------------------------------------------------
+# Sincronizar Calendar → DB  (apaga no DB o que foi apagado no Calendar)
+# ---------------------------------------------------------------------------
+
+class SyncCalendarView(APIView):
+    def post(self, request):
+        if not check_gestao_auth(request):
+            return Response({"error": "Não autorizado"}, status=401)
+
+        try:
+            google_creds = json.loads(os.environ["GOOGLE_CREDENTIALS"])
+            creds = service_account.Credentials.from_service_account_info(
+                google_creds,
+                scopes=["https://www.googleapis.com/auth/calendar"]
+            )
+            service = build("calendar", "v3", credentials=creds)
+        except Exception as e:
+            return Response({"error": f"Erro ao ligar ao Calendar: {e}"}, status=500)
+
+        calendar_id = "adminsiteatx@gmail.com"
+        bookings = Booking.objects.exclude(event_id__isnull=True).exclude(event_id="")
+        eliminadas = 0
+
+        for booking in bookings:
+            try:
+                event = service.events().get(
+                    calendarId=calendar_id,
+                    eventId=booking.event_id
+                ).execute()
+                if event.get("status") == "cancelled":
+                    booking.delete()
+                    eliminadas += 1
+            except Exception:
+                booking.delete()
+                eliminadas += 1
+
+        return Response({"sincronizado": True, "eliminadas": eliminadas})
