@@ -142,7 +142,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Semana preferencial</label>
+                    <label>Dia preferencial</label>
                     <div class="semanas-container" id="semanasContainer">
                         <p style="color:#666;font-size:14px">A carregar disponibilidade...</p>
                     </div>
@@ -186,7 +186,8 @@
                 <div class="resumo">
                     <p><strong>Serviço:</strong> <span id="resumoServico"></span></p>
                     <p><strong>Bicicleta:</strong> <span id="resumoBike"></span></p>
-                    <p><strong>Semana:</strong> <span id="resumoSemana"></span></p>
+                    <p><strong>Dia:</strong> <span id="resumoSemana"></span></p>
+                    <p><strong>Entrega prevista:</strong> <span id="resumoEntrega"></span></p>
                     <p><strong>Mensagem:</strong> <span id="resumoMensagem"></span></p>
                     <p><strong>Nome:</strong> <span id="resumoNome"></span></p>
                     <p><strong>Email:</strong> <span id="resumoEmail"></span></p>
@@ -212,81 +213,59 @@
 <script>
     const API_URL = "https://atxcyclingstore.onrender.com";
 
-    let semanaEscolhida = null;  // objeto completo da semana
+    let diaEscolhido = null;  // objeto completo do dia escolhido
 
-    // ── Carregar semanas disponíveis ──────────────────────────────────────
-    async function carregarSemanas() {
+    // ── Carregar dias disponíveis ─────────────────────────────────────────
+    async function carregarDias() {
         const container = document.getElementById('semanasContainer');
         container.innerHTML = '<p style="color:#666;font-size:14px">A carregar disponibilidade...</p>';
 
         try {
-            const res = await fetch(`${API_URL}/api/available-weeks/`);
+            const res = await fetch(`${API_URL}/api/available-days/`);
             const data = await res.json();
-            renderSemanas(data);
+            renderDias(data);
         } catch {
             container.innerHTML = '<p style="color:#ff6b6b;font-size:14px">Erro ao carregar. Tenta novamente.</p>';
         }
     }
 
-    function formatarData(iso) {
-        return new Date(iso + 'T12:00:00').toLocaleDateString('pt-PT', {day: '2-digit', month: 'short'});
-    }
-
-    function calcularEntrega(semanaInicio) {
-        // se 3a ou 4a: pronta no sábado dessa semana
-        // senão: pronta na semana seguinte
-        const inicio = new Date(semanaInicio + 'T12:00:00');
-        const hoje = new Date();
-        hoje.setHours(0, 0, 0, 0);
-
-        // sábado dessa semana
-        const sabado = new Date(inicio);
-        sabado.setDate(inicio.getDate() + 5);
-
-        if (sabado > hoje) {
-            return `Entrega prevista até ${formatarData(sabado.toISOString().split('T')[0])}`;
-        }
-        return '';
-    }
-
-    function renderSemanas(semanas) {
+    function renderDias(dias) {
         const container = document.getElementById('semanasContainer');
         container.innerHTML = '';
 
-        semanas.forEach(s => {
-            const vagasClass = s.cheia ? 'cheia' : s.disponiveis <= 2 ? 'poucas' : '';
-            const vagasText = s.cheia ? 'Completa' : `${s.disponiveis} vaga${s.disponiveis !== 1 ? 's' : ''}`;
-            const label = `${formatarData(s.semana_inicio)} – ${formatarData(s.semana_fim)}`;
+        if (dias.length === 0) {
+            container.innerHTML = '<p style="color:#666;font-size:14px">Sem disponibilidade nas próximas semanas.</p>';
+            return;
+        }
+
+        dias.forEach(d => {
+            const vagasClass = d.cheia ? 'cheia' : d.disponiveis <= 2 ? 'poucas' : '';
+            const vagasText  = d.cheia ? 'Completa' : `${d.disponiveis} vaga${d.disponiveis !== 1 ? 's' : ''}`;
 
             const el = document.createElement('div');
-            el.className = `semana-item${s.cheia ? ' cheia' : ''}`;
+            el.className = `semana-item${d.cheia ? ' cheia' : ''}`;
             el.innerHTML = `
-        <span class="semana-label">${label}</span>
-        <span class="semana-vagas ${vagasClass}">${vagasText}</span>`;
+                <span class="semana-label">${d.label}</span>
+                <span class="semana-vagas ${vagasClass}">${vagasText}</span>`;
 
-            if (!s.cheia) {
-                el.addEventListener('click', () => selecionarSemana(s, el));
+            if (!d.cheia) {
+                el.addEventListener('click', () => selecionarDia(d, el));
             }
 
             container.appendChild(el);
         });
     }
 
-    function selecionarSemana(semana, elemento) {
-        semanaEscolhida = semana;
-        document.getElementById('dataEscolhida').value = semana.semana_inicio;
+    function selecionarDia(dia, elemento) {
+        diaEscolhido = dia;
+        document.getElementById('dataEscolhida').value = dia.data;
 
         document.querySelectorAll('.semana-item').forEach(el => el.classList.remove('ativa'));
         elemento.classList.add('ativa');
 
         const aviso = document.getElementById('avisoEntrega');
-        const msg = calcularEntrega(semana.semana_inicio);
-        if (msg) {
-            aviso.textContent = msg;
-            aviso.style.display = 'block';
-        } else {
-            aviso.style.display = 'none';
-        }
+        aviso.textContent = `Entrega prevista: ${dia.entrega}`;
+        aviso.style.display = 'block';
     }
 
     // ── Multistep form ────────────────────────────────────────────────────
@@ -308,8 +287,8 @@
 
     nextBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            if (currentStep === 0 && !semanaEscolhida) {
-                alert('Escolhe uma semana antes de continuar.');
+            if (currentStep === 0 && !diaEscolhido) {
+                alert('Escolhe um dia antes de continuar.');
                 return;
             }
             if (currentStep < steps.length - 1) {
@@ -330,88 +309,14 @@
     });
 
     function preencherResumo() {
-        const inicio = formatarData(semanaEscolhida.semana_inicio);
-        const fim = formatarData(semanaEscolhida.semana_fim);
-
-        document.getElementById('resumoServico').textContent = document.getElementById('servico').value;
-        document.getElementById('resumoBike').textContent = document.getElementById('modeloBike').value;
-        document.getElementById('resumoSemana').textContent = `${inicio} – ${fim}`;
+        document.getElementById('resumoServico').textContent  = document.getElementById('servico').value;
+        document.getElementById('resumoBike').textContent     = document.getElementById('modeloBike').value;
+        document.getElementById('resumoSemana').textContent   = diaEscolhido.label;
+        document.getElementById('resumoEntrega').textContent  = diaEscolhido.entrega;
         document.getElementById('resumoMensagem').textContent = document.getElementById('mensagem').value || '—';
-        document.getElementById('resumoNome').textContent = document.getElementById('nome').value;
-        document.getElementById('resumoEmail').textContent = document.getElementById('email').value;
+        document.getElementById('resumoNome').textContent     = document.getElementById('nome').value;
+        document.getElementById('resumoEmail').textContent    = document.getElementById('email').value;
         document.getElementById('resumoTelefone').textContent = document.getElementById('telefone').value || '—';
-    }
-
-    // ── Web3Forms ─────────────────────────────────────────────────────────
-    const WEB3FORMS_KEY = "TUA_ACCESS_KEY_AQUI"; // substitui pela tua chave
-    const FRONTEND_URL  = "https://atxcyclingstore.vercel.app";
-    const DONO_EMAIL    = "adminsiteatx@gmail.com";
-
-    async function enviarEmailCliente(booking) {
-        const trackingUrl = `${FRONTEND_URL}/pages/tracking.html?token=${booking.token_tracking}`;
-        const dataFormatada = new Date(booking.data + 'T12:00:00').toLocaleDateString('pt-PT', {
-            day: '2-digit', month: 'long', year: 'numeric'
-        });
-
-        await fetch("https://api.web3forms.com/submit", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                access_key: WEB3FORMS_KEY,
-                to: booking.email,
-                subject: `[${booking.numero_pedido}] Marcação confirmada — ATXcyclingstore`,
-                from_name: "ATXcyclingstore",
-                html: `
-                    <div style="font-family:sans-serif;max-width:600px;margin:auto;color:#111">
-                      <h2 style="color:#0077cc">Marcação confirmada — ATXcyclingstore</h2>
-                      <p>Olá <strong>${booking.nome}</strong>,</p>
-                      <p>A tua bicicleta foi registada na nossa oficina. Podes acompanhar o estado em tempo real através do link abaixo.</p>
-                      <div style="background:#f4f4f4;border-radius:8px;padding:16px;margin:24px 0">
-                        <p style="margin:0 0 8px 0"><strong>Nº de pedido:</strong> ${booking.numero_pedido}</p>
-                        <p style="margin:0"><strong>Semana prevista:</strong> ${dataFormatada}</p>
-                      </div>
-                      <a href="${trackingUrl}"
-                         style="display:inline-block;background:#0077cc;color:white;padding:12px 24px;
-                                border-radius:6px;text-decoration:none;font-weight:500">
-                        Acompanhar a minha bicicleta
-                      </a>
-                      <p style="margin-top:32px;font-size:13px;color:#888">
-                        Também podes consultar em
-                        <a href="${FRONTEND_URL}/pages/tracking.html">${FRONTEND_URL}/pages/tracking.html</a>
-                        com o número <strong>${booking.numero_pedido}</strong>.
-                      </p>
-                      <hr style="margin-top:40px;border:none;border-top:1px solid #eee">
-                      <p style="font-size:12px;color:#aaa">ATXcyclingstore · +351 918 583 829 · atxcyclingstore@gmail.com</p>
-                    </div>`,
-            }),
-        });
-    }
-
-    async function enviarEmailDono(booking, servico, modeloBike) {
-        const dataFormatada = new Date(booking.data + 'T12:00:00').toLocaleDateString('pt-PT', {
-            day: '2-digit', month: 'long', year: 'numeric'
-        });
-
-        await fetch("https://api.web3forms.com/submit", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                access_key: WEB3FORMS_KEY,
-                to: DONO_EMAIL,
-                subject: `Nova marcação: ${booking.numero_pedido} — ${booking.nome}`,
-                from_name: "ATXcyclingstore",
-                html: `
-                    <div style="font-family:sans-serif;max-width:600px;margin:auto;color:#111">
-                      <h3>Nova marcação recebida</h3>
-                      <p><strong>Pedido:</strong> ${booking.numero_pedido}</p>
-                      <p><strong>Cliente:</strong> ${booking.nome} (${booking.email})</p>
-                      <p><strong>Serviço:</strong> ${servico}</p>
-                      <p><strong>Bicicleta:</strong> ${modeloBike}</p>
-                      <p><strong>Semana:</strong> ${dataFormatada}</p>
-                      <p><strong>Mensagem:</strong> ${booking.mensagem || '—'}</p>
-                    </div>`,
-            }),
-        });
     }
 
     // ── Submit ────────────────────────────────────────────────────────────
@@ -424,8 +329,8 @@
             return;
         }
 
-        if (!semanaEscolhida) {
-            alert('Escolhe uma semana disponível.');
+        if (!diaEscolhido) {
+            alert('Escolhe um dia disponível.');
             return;
         }
 
@@ -433,14 +338,14 @@
         submitBtn.disabled = true;
         submitBtn.textContent = 'A enviar...';
 
-        const servico   = document.getElementById('servico').value;
+        const servico    = document.getElementById('servico').value;
         const modeloBike = document.getElementById('modeloBike').value;
 
         const dados = {
-            nome: document.getElementById('nome').value,
-            email: document.getElementById('email').value,
+            nome:     document.getElementById('nome').value,
+            email:    document.getElementById('email').value,
             mensagem: `[${servico} — ${modeloBike}] ${document.getElementById('mensagem').value}`.trim(),
-            data: semanaEscolhida.semana_inicio,
+            data:     diaEscolhido.data,
         };
 
         try {
@@ -460,25 +365,13 @@
 
             const booking = await res.json();
 
-            // guardar para a página de confirmação
             sessionStorage.setItem('booking_confirmacao', JSON.stringify({
-                numero_pedido: booking.numero_pedido,
+                numero_pedido:  booking.numero_pedido,
                 token_tracking: booking.token_tracking,
-                nome: booking.nome,
-                data: booking.data,
+                nome:           booking.nome,
+                data:           booking.data,
             }));
 
-            // enviar emails (fire-and-forget — não bloqueia o redirect)
-            Promise.allSettled([
-                enviarEmailCliente(booking),
-                enviarEmailDono(booking, servico, modeloBike),
-            ]).then(results => {
-                results.forEach((r, i) => {
-                    if (r.status === 'rejected') console.error(`Web3Forms email ${i} falhou:`, r.reason);
-                });
-            });
-
-            // limpar localStorage
             ['nome', 'email', 'telefone', 'mensagem', 'data', 'modelo_bike', 'servico'].forEach(k =>
                 localStorage.removeItem(k)
             );
@@ -493,7 +386,7 @@
     });
 
     // ── Init ──────────────────────────────────────────────────────────────
-    carregarSemanas();
+    carregarDias();
 </script>
 
 </body>

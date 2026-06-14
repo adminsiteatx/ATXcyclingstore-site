@@ -8,7 +8,7 @@ import json
 
 
 def create_calendar_event(booking):
-    """Cria um evento no Google Calendar para a semana da marcação."""
+    """Cria um evento no Google Calendar para o dia da marcação (09:00–10:00)."""
     google_creds = json.loads(os.environ["GOOGLE_CREDENTIALS"])
 
     creds = service_account.Credentials.from_service_account_info(
@@ -18,17 +18,18 @@ def create_calendar_event(booking):
 
     service = build("calendar", "v3", credentials=creds)
 
-    # usar a data da marcação como evento de dia inteiro
     data_str = booking.data.isoformat()
 
     event = {
         "summary": f"Marcação — {booking.nome}",
         "description": booking.mensagem or "",
         "start": {
-            "date": data_str,
+            "dateTime": f"{data_str}T09:00:00",
+            "timeZone": "Europe/Lisbon",
         },
         "end": {
-            "date": data_str,
+            "dateTime": f"{data_str}T10:00:00",
+            "timeZone": "Europe/Lisbon",
         },
     }
 
