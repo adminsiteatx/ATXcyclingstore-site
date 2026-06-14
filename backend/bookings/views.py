@@ -160,9 +160,11 @@ class GestaoListView(APIView):
             "numero_pedido": b.numero_pedido,
             "nome": b.nome,
             "email": b.email,
+            "telefone": getattr(b, 'telefone', ''),
             "data": b.data.isoformat(),
             "estado": b.estado,
             "estado_label": b.get_estado_display(),
+            "mensagem": b.mensagem or "",
             "criado_em": b.criado_em.isoformat(),
         } for b in bookings]
         return Response(data)

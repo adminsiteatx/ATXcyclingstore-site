@@ -1,4 +1,6 @@
-const API_URL = "https://atxcyclingstore.onrender.com";
+const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:8000'
+    : 'https://atxcyclingstore.onrender.com';
 
 /* guarda o scroll quando é dado refresh */
 if ("scrollRestoration" in history) {

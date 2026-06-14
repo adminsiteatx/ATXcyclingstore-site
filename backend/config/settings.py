@@ -77,6 +77,9 @@ MIDDLEWARE = [
 
 CORS_ALLOW_ALL_ORIGINS = True
 
+from corsheaders.defaults import default_headers
+CORS_ALLOW_HEADERS = list(default_headers) + ["x-gestao-token"]
+
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
@@ -98,6 +101,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+
+_IS_RENDER = os.environ.get("RENDER", False)
+
+if _IS_RENDER and not os.environ.get("DATABASE_URL"):
+    raise RuntimeError("DATABASE_URL não está definida no Render. A arrancar sem base de dados PostgreSQL seria perda de dados.")
 
 DATABASES = {
     'default': dj_database_url.config(
