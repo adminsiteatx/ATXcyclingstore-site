@@ -292,8 +292,53 @@
         .detail-value { font-size: 14px; color: #ccc; }
 
         @media (max-width: 700px) {
+            .dash-header {
+                padding: 12px 16px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .dash-header h1 {
+                font-size: 15px;
+            }
+
+            .dash-header button {
+                padding: 5px 10px;
+                font-size: 12px;
+            }
+
+            .dash-body {
+                padding: 16px;
+            }
+
+            .filtros {
+                gap: 6px;
+            }
+
+            .filtro-btn {
+                padding: 5px 12px;
+                font-size: 12px;
+            }
+
             .booking-row {
+                grid-template-columns: 1fr auto !important;
+                grid-template-rows: auto auto auto;
+            }
+
+            .booking-row > div:nth-child(1) { grid-column: 1; }
+            .booking-row > div:nth-child(2) { grid-column: 1; }
+            .booking-row > div:nth-child(3) { grid-column: 1; font-size: 12px; }
+            .booking-row > div:nth-child(4) { grid-column: 1 / -1; }
+            .booking-row > div:nth-child(5) {
+                grid-column: 2;
+                grid-row: 1;
+                align-self: start;
+            }
+
+            .booking-detail {
                 grid-template-columns: 1fr;
+                margin: 0 -16px -16px;
+                padding: 12px 16px;
             }
         }
     </style>
