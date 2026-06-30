@@ -121,7 +121,7 @@
 
 <script src="../js/script.js"></script>
 <script>
-    const FRONTEND_URL = "https://atxcyclingstore.vercel.app";
+    const FRONTEND_URL = window.location.origin;
     const raw = sessionStorage.getItem('booking_confirmacao');
     if (raw) {
         try {
