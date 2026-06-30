@@ -37,10 +37,10 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ol+jf#&8xmj+_+jb46$+9=dudk4u&hwy6r9v(l17lpx#+96o-b'
+SECRET_KEY = os.environ.get("SECRET_KEY", 'django-insecure-ol+jf#&8xmj+_+jb46$+9=dudk4u&hwy6r9v(l17lpx#+96o-b')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = [
     "127.0.0.1",
@@ -177,4 +177,6 @@ STORAGES = {
 }
 CORS_ALLOWED_ORIGINS = [
     "https://atxcyclingstore.vercel.app",
+    "https://simaocruzafonso.com",
+    "https://www.simaocruzafonso.com",
 ]
