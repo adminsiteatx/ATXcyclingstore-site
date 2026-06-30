@@ -1,14 +1,16 @@
 from django.contrib import admin
-from .models import Booking, CapacidadeSemanal
+from .models import Booking, CapacidadeSemanal, Cliente
+
+
+@admin.register(Cliente)
+class ClienteAdmin(admin.ModelAdmin):
+    list_display = ("user", "telefone", "aceita_sms")
+    search_fields = ("user__email", "user__first_name", "telefone")
 
 
 @admin.register(CapacidadeSemanal)
 class CapacidadeSemanalAdmin(admin.ModelAdmin):
-    list_display = ("capacidade", "atualizado_em")
-
-    def has_add_permission(self, request):
-        # só existe 1 registo
-        return not CapacidadeSemanal.objects.exists()
+    list_display = ("semana", "vagas_total", "atualizado_em")
 
 
 @admin.register(Booking)

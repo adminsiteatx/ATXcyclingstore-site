@@ -1,6 +1,7 @@
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 import datetime
@@ -11,7 +12,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 from .models import Booking, CapacidadeSemanal
-from .serializers import BookingSerializer, bookings_na_semana, get_capacidade
+from .serializers import BookingSerializer, bookings_na_semana, get_capacidade, VAGAS_PADRAO
 
 DIAS_PT = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
 MESES_PT = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"]
@@ -65,6 +66,17 @@ class BookingCreateView(generics.CreateAPIView):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
 
+    def perform_create(self, serializer):
+        user = None
+        try:
+            auth = JWTAuthentication()
+            result = auth.authenticate(self.request)
+            if result:
+                user, _ = result
+        except Exception:
+            pass
+        serializer.save(user=user)
+
 
 # ---------------------------------------------------------------------------
 # Dias disponíveis (próximas 8 semanas, terça a sábado)
@@ -73,16 +85,16 @@ class BookingCreateView(generics.CreateAPIView):
 class AvailableDaysView(APIView):
     def get(self, request):
         hoje = timezone.localdate()
-        capacidade = get_capacidade()
         dias = []
 
         for i in range(5):
             segunda = hoje - datetime.timedelta(days=hoje.weekday()) + datetime.timedelta(weeks=i)
             sabado  = segunda + datetime.timedelta(days=5)
 
-            total_db  = bookings_na_semana(segunda)
-            total_cal = _calendar_eventos_semana(segunda, sabado)
-            total     = max(total_db, total_cal)
+            capacidade  = get_capacidade(segunda)
+            total_db    = bookings_na_semana(segunda)
+            total_cal   = _calendar_eventos_semana(segunda, sabado)
+            total       = max(total_db, total_cal)
             disponiveis = max(0, capacidade - total)
             cheia = disponiveis <= 0
 
@@ -116,6 +128,7 @@ class TrackingByTokenView(APIView):
             "estado": booking.estado,
             "estado_label": booking.get_estado_display(),
             "data": booking.data.isoformat(),
+            "entrega_prevista": _entrega(booking.data),
             "criado_em": booking.criado_em.isoformat(),
         })
 
@@ -133,6 +146,7 @@ class TrackingByNumeroView(APIView):
             "estado": booking.estado,
             "estado_label": booking.get_estado_display(),
             "data": booking.data.isoformat(),
+            "entrega_prevista": _entrega(booking.data),
             "criado_em": booking.criado_em.isoformat(),
         })
 
@@ -160,7 +174,7 @@ class GestaoListView(APIView):
             "numero_pedido": b.numero_pedido,
             "nome": b.nome,
             "email": b.email,
-            "telefone": getattr(b, 'telefone', ''),
+            "telefone": b.telefone,
             "data": b.data.isoformat(),
             "estado": b.estado,
             "estado_label": b.get_estado_display(),
@@ -250,3 +264,57 @@ class SyncCalendarView(APIView):
                 eliminadas += 1
 
         return Response({"sincronizado": True, "eliminadas": eliminadas})
+
+
+# ---------------------------------------------------------------------------
+# Capacidade por semana
+# ---------------------------------------------------------------------------
+
+class CapacidadeView(APIView):
+    def get(self, request):
+        if not check_gestao_auth(request):
+            return Response({"error": "Não autorizado"}, status=401)
+
+        semana_str = request.query_params.get("semana")
+        if not semana_str:
+            return Response({"error": "Parâmetro 'semana' obrigatório (YYYY-MM-DD)"}, status=400)
+
+        try:
+            segunda = datetime.date.fromisoformat(semana_str)
+        except ValueError:
+            return Response({"error": "Formato de data inválido"}, status=400)
+
+        vagas_total = get_capacidade(segunda)
+        vagas_usadas = bookings_na_semana(segunda)
+
+        return Response({
+            "semana": segunda.isoformat(),
+            "vagas_total": vagas_total,
+            "vagas_usadas": vagas_usadas,
+        })
+
+    def post(self, request):
+        if not check_gestao_auth(request):
+            return Response({"error": "Não autorizado"}, status=401)
+
+        semana_str = request.data.get("semana")
+        vagas_total = request.data.get("vagas_total")
+
+        if not semana_str or vagas_total is None:
+            return Response({"error": "Campos 'semana' e 'vagas_total' obrigatórios"}, status=400)
+
+        try:
+            segunda = datetime.date.fromisoformat(semana_str)
+            vagas_total = int(vagas_total)
+        except (ValueError, TypeError):
+            return Response({"error": "Dados inválidos"}, status=400)
+
+        obj, _ = CapacidadeSemanal.objects.update_or_create(
+            semana=segunda,
+            defaults={"vagas_total": vagas_total},
+        )
+
+        return Response({
+            "semana": obj.semana.isoformat(),
+            "vagas_total": obj.vagas_total,
+        })

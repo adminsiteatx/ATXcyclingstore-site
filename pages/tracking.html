@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acompanhar Marcação | ATXcyclingstore</title>
     <link rel="icon" type="image/png" href="../favicon_black.png">
     <link rel="stylesheet" href="../css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -289,7 +288,7 @@
     </style>
 </head>
 
-<body>
+<body id="servicos">
 
 <header>
     <nav class="navbar">
@@ -302,7 +301,7 @@
             <li><a href="marcas.html" class="nav-link">Marcas</a></li>
             <li><a href="galeria.html" class="nav-link">Galeria</a></li>
             <li><a href="contactos.html" class="nav-link">Contactos</a></li>
-            <li><a href="tracking.html" class="nav-link">Acompanhar Marcação</a></li>
+            <li><a href="login.html" class="nav-link" id="navAuthLink">Entrar</a></li>
         </ul>
         <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
     </nav>
@@ -390,11 +389,7 @@
         document.getElementById('cardPedido').textContent = data.numero_pedido;
         document.getElementById('cardNome').textContent = data.nome;
         document.getElementById('cardData').textContent =
-            'Entrega prevista: ' + new Date(data.data).toLocaleDateString('pt-PT', {
-                day: '2-digit',
-                month: 'long',
-                year: 'numeric'
-            });
+            'Entrega prevista: ' + (data.entrega_prevista || data.data);
 
         const badge = document.getElementById('cardBadge');
         badge.textContent = data.estado_label;

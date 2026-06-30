@@ -12,10 +12,48 @@
 
     <style>
         .semanas-container {
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
             margin-top: 8px;
+        }
+
+        /* navegador de semanas */
+        .semana-card {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 10px;
+            padding: 14px 16px;
+        }
+
+        .semana-nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .semana-nav-btn {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: #aaa;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: border-color 0.15s, color 0.15s;
+            flex-shrink: 0;
+        }
+
+        .semana-nav-btn:hover:not(:disabled) { border-color: #0077cc; color: white; }
+        .semana-nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+        .semana-nav-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         /* bloco de semana */
@@ -28,13 +66,6 @@
 
         .semana-bloco.cheia {
             opacity: 0.45;
-        }
-
-        .semana-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
         }
 
         .semana-titulo {
@@ -120,7 +151,7 @@
             <li><a href="marcas.html" class="nav-link">Marcas</a></li>
             <li><a href="galeria.html" class="nav-link">Galeria</a></li>
             <li><a href="contactos.html" class="nav-link">Contactos</a></li>
-            <li><a href="tracking.html" class="nav-link">Acompanhar Marcação</a></li>
+            <li><a href="login.html" class="nav-link" id="navAuthLink">Entrar</a></li>
         </ul>
         <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
     </nav>
@@ -172,6 +203,17 @@
                     <label>Dia preferencial</label>
                     <div class="semanas-container" id="semanasContainer">
                         <p style="color:#666;font-size:14px">A carregar disponibilidade...</p>
+                    </div>
+                    <div class="semana-card" id="semanaCard" style="display:none">
+                        <div class="semana-nav" id="semanasNav">
+                            <button type="button" class="semana-nav-btn" id="navAnterior" onclick="navSemana(-1)">‹</button>
+                            <div class="semana-nav-info">
+                                <span class="semana-titulo" id="navTitulo"></span>
+                                <span class="semana-vagas" id="navVagas"></span>
+                            </div>
+                            <button type="button" class="semana-nav-btn" id="navSeguinte" onclick="navSemana(1)">›</button>
+                        </div>
+                        <div id="semanaDias"></div>
                     </div>
                     <p class="aviso-entrega" id="avisoEntrega" style="display:none"></p>
                     <input type="hidden" id="dataEscolhida">
@@ -261,16 +303,21 @@
         }
     }
 
+    let semanasLista = [];
+    let semanaAtual = 0;
+    const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+
     function renderDias(dias) {
         const container = document.getElementById('semanasContainer');
-        container.innerHTML = '';
 
         if (dias.length === 0) {
             container.innerHTML = '<p style="color:#666;font-size:14px">Sem disponibilidade nas próximas semanas.</p>';
             return;
         }
 
-        // agrupar por semana (segunda-feira do dia)
+        container.style.display = 'none';
+
+        // agrupar por semana
         const semanas = new Map();
         dias.forEach(d => {
             const dt = new Date(d.data + 'T12:00:00');
@@ -281,46 +328,61 @@
             semanas.get(key).dias.push(d);
         });
 
-        const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-
-        semanas.forEach(({ dias: diasSemana, disponiveis, cheia }) => {
-            const primeiro = new Date(diasSemana[0].data + 'T12:00:00');
-            const ultimo   = new Date(diasSemana[diasSemana.length - 1].data + 'T12:00:00');
+        semanasLista = [...semanas.values()].map(s => {
+            const primeiro = new Date(s.dias[0].data + 'T12:00:00');
+            const ultimo   = new Date(s.dias[s.dias.length - 1].data + 'T12:00:00');
             const titulo   = primeiro.getMonth() === ultimo.getMonth()
                 ? `${primeiro.getDate()}–${ultimo.getDate()} ${MESES[ultimo.getMonth()]}`
                 : `${primeiro.getDate()} ${MESES[primeiro.getMonth()]}–${ultimo.getDate()} ${MESES[ultimo.getMonth()]}`;
-
-            const vagasClass = cheia ? 'cheia' : disponiveis <= 2 ? 'poucas' : '';
-            const vagasText  = cheia ? 'Completa' : `${disponiveis} vaga${disponiveis !== 1 ? 's' : ''}`;
-
-            const bloco = document.createElement('div');
-            bloco.className = `semana-bloco${cheia ? ' cheia' : ''}`;
-            bloco.innerHTML = `
-                <div class="semana-header">
-                    <span class="semana-titulo">Semana de ${titulo}</span>
-                    <span class="semana-vagas ${vagasClass}">${vagasText}</span>
-                </div>
-                <div class="dias-chips"></div>`;
-
-            const chipsContainer = bloco.querySelector('.dias-chips');
-
-            diasSemana.forEach(d => {
-                // label curto: só o dia da semana + número (ex: "Terça 16")
-                const partes = d.label.split(', ');  // ["Terça", "16 jun"]
-                const labelCurto = partes[0] + ' ' + partes[1].split(' ')[0];
-
-                const chip = document.createElement('button');
-                chip.type = 'button';
-                chip.className = 'dia-chip';
-                chip.textContent = labelCurto;
-                chip.disabled = cheia;
-
-                chip.addEventListener('click', () => selecionarDia(d, chip));
-                chipsContainer.appendChild(chip);
-            });
-
-            container.appendChild(bloco);
+            return { ...s, titulo };
         });
+
+        semanaAtual = 0;
+        document.getElementById('semanaCard').style.display = 'block';
+        renderSemanaAtual();
+    }
+
+    function renderSemanaAtual() {
+        const s = semanasLista[semanaAtual];
+
+        // header nav
+        document.getElementById('navTitulo').textContent = `Semana de ${s.titulo}`;
+        const vagasEl = document.getElementById('navVagas');
+        vagasEl.textContent = s.cheia ? 'Completa' : `${s.disponiveis} vaga${s.disponiveis !== 1 ? 's' : ''}`;
+        vagasEl.className = `semana-vagas ${s.cheia ? 'cheia' : s.disponiveis <= 2 ? 'poucas' : ''}`;
+
+        // setas
+        document.getElementById('navAnterior').disabled = semanaAtual === 0;
+        document.getElementById('navSeguinte').disabled = semanaAtual === semanasLista.length - 1;
+
+        // chips
+        const diasDiv = document.getElementById('semanaDias');
+        diasDiv.innerHTML = '';
+        const chipsContainer = document.createElement('div');
+        chipsContainer.className = 'dias-chips';
+
+        s.dias.forEach(d => {
+            const partes = d.label.split(', ');
+            const labelCurto = partes[0] + ' ' + partes[1].split(' ')[0];
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'dia-chip';
+            chip.textContent = labelCurto;
+            chip.disabled = s.cheia;
+            chip.addEventListener('click', () => selecionarDia(d, chip));
+            chipsContainer.appendChild(chip);
+        });
+
+        diasDiv.appendChild(chipsContainer);
+    }
+
+    function navSemana(dir) {
+        semanaAtual = Math.max(0, Math.min(semanasLista.length - 1, semanaAtual + dir));
+        // limpar dia selecionado ao mudar de semana
+        diaEscolhido = null;
+        document.getElementById('dataEscolhida').value = '';
+        document.getElementById('avisoEntrega').style.display = 'none';
+        renderSemanaAtual();
     }
 
     function selecionarDia(dia, chip) {
@@ -411,14 +473,19 @@
         const dados = {
             nome:     document.getElementById('nome').value,
             email:    document.getElementById('email').value,
+            telefone: document.getElementById('telefone').value || '',
             mensagem: `[${servico} — ${modeloBike}] ${document.getElementById('mensagem').value}`.trim(),
             data:     diaEscolhido.data,
         };
 
         try {
+            const headers = {'Content-Type': 'application/json'};
+            const jwt = localStorage.getItem('atx_access');
+            if (jwt) headers['Authorization'] = `Bearer ${jwt}`;
+
             const res = await fetch(`${API_URL}/api/bookings/`, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers,
                 body: JSON.stringify(dados),
             });
 
@@ -451,6 +518,18 @@
             submitBtn.textContent = 'Enviar Pedido';
         }
     });
+
+    // ── Auth ──────────────────────────────────────────────────────────────
+    const atxToken = localStorage.getItem('atx_access');
+    if (!atxToken) {
+        window.location.href = 'login.html?next=reserva.html';
+    } else {
+        // pré-preencher nome e email
+        const nomeGuardado  = localStorage.getItem('atx_nome') || '';
+        const emailGuardado = localStorage.getItem('atx_email') || '';
+        if (nomeGuardado)  document.getElementById('nome').value  = nomeGuardado;
+        if (emailGuardado) document.getElementById('email').value = emailGuardado;
+    }
 
     // ── Init ──────────────────────────────────────────────────────────────
     carregarDias();

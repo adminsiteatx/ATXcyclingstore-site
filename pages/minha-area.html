@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Área | ATXcyclingstore</title>
+    <link rel="icon" type="image/png" href="../favicon_black.png">
+    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        .area-section {
+            min-height: 90vh;
+            padding: 60px 20px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .area-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 36px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .area-header h1 { font-size: 28px; margin: 0; }
+        .area-header .saudacao { color: #888; font-size: 14px; margin-top: 4px; }
+        .btn-sair {
+            background: transparent;
+            border: 1px solid #333;
+            color: #aaa;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            transition: border-color 0.2s, color 0.2s;
+        }
+        .btn-sair:hover { border-color: #ff6b6b; color: #ff6b6b; }
+
+        .marcacao-card {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 20px 22px;
+            margin-bottom: 14px;
+        }
+        .marcacao-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .marcacao-info { flex: 1; min-width: 200px; }
+        .marcacao-numero { font-size: 12px; color: #666; margin-bottom: 4px; }
+        .marcacao-servico { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+        .marcacao-data { font-size: 13px; color: #888; }
+
+        .marcacao-right { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+
+        .marcacao-actions {
+            display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+            margin-top: 14px; padding-top: 14px; border-top: 1px solid #1d1d1d;
+        }
+        .btn-detalhes {
+            background: none; border: none; color: #777; cursor: pointer;
+            font-family: 'Poppins', sans-serif; font-size: 13px;
+            display: flex; align-items: center; gap: 5px; padding: 0;
+            transition: color 0.2s;
+        }
+        .btn-detalhes:hover { color: #ccc; }
+        .btn-detalhes .bi { transition: transform 0.2s; }
+        .btn-detalhes.aberto .bi { transform: rotate(180deg); }
+        .btn-cancelar-marcacao {
+            background: transparent; border: 1px solid #5c2424; color: #ff6b6b;
+            padding: 6px 13px; border-radius: 8px; cursor: pointer;
+            font-family: 'Poppins', sans-serif; font-size: 13px; margin-left: auto;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .btn-cancelar-marcacao:hover { background: rgba(255,107,107,0.08); border-color: #ff6b6b; }
+        .marcacao-detalhes {
+            display: none; margin-top: 14px; padding: 14px 16px;
+            background: #0a0a0a; border: 1px solid #1d1d1d; border-radius: 8px;
+            font-size: 13px; color: #aaa; line-height: 1.6; white-space: pre-wrap;
+        }
+        .marcacao-detalhes.visible { display: block; }
+
+        .estado-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .estado-marcada  { background:#1a1a1a; color:#aaa; border:1px solid #444; }
+        .estado-recebida { background:#1a1a2e; color:#7b8cde; border:1px solid #3a4280; }
+        .estado-diagnostico { background:#1a2a1a; color:#6dbe6d; border:1px solid #2e5e2e; }
+        .estado-reparacao { background:#2a1a00; color:#f0a030; border:1px solid #6e4a00; }
+        .estado-pronta   { background:#002a10; color:#30d060; border:1px solid #006030; }
+        .estado-entregue { background:#1a1a1a; color:#888; border:1px solid #333; }
+
+        .btn-acompanhar {
+            background: transparent;
+            border: 1px solid #0077cc;
+            color: #0077cc;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            text-decoration: none;
+            transition: background 0.2s, color 0.2s;
+        }
+        .btn-acompanhar:hover { background: #0077cc; color: white; }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #555;
+        }
+        .empty-state i { font-size: 40px; margin-bottom: 14px; display: block; }
+        .empty-state a {
+            color: #0077cc;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .secao-titulo {
+            font-size: 16px;
+            font-weight: 600;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
+        }
+
+        .perfil-card {
+            background: #111; border: 1px solid #222; border-radius: 12px;
+            padding: 24px 22px; margin-bottom: 16px;
+        }
+        .perfil-field { margin-bottom: 16px; }
+        .perfil-field label { display: block; font-size: 13px; color: #aaa; margin-bottom: 6px; }
+        .perfil-field input {
+            width: 100%; background: #0a0a0a; border: 1px solid #333;
+            border-radius: 8px; padding: 10px 13px; color: white;
+            font-family: 'Poppins', sans-serif; font-size: 14px; box-sizing: border-box;
+        }
+        .perfil-field input:focus { outline: none; border-color: #0077cc; }
+        .perfil-row { display: flex; gap: 12px; flex-wrap: wrap; }
+        .perfil-row .perfil-field { flex: 1; min-width: 160px; }
+        .perfil-checkbox { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; }
+        .perfil-checkbox input[type=checkbox] {
+            margin-top: 3px; accent-color: #0077cc; flex-shrink: 0;
+            appearance: checkbox; -webkit-appearance: checkbox; width: 16px; height: 16px; cursor: pointer;
+        }
+        .perfil-checkbox label { font-size: 13px; color: #aaa; line-height: 1.4; }
+        .btn-perfil {
+            background: #0077cc; color: white; border: none;
+            padding: 10px 20px; border-radius: 8px; cursor: pointer;
+            font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 500;
+            transition: background 0.2s;
+        }
+        .btn-perfil:hover { background: #005fa3; }
+        .perfil-msg { font-size: 13px; margin-top: 12px; display: none; }
+        .perfil-msg.erro { color: #ff6b6b; }
+        .perfil-msg.sucesso { color: #30d060; }
+        .perfil-msg.visible { display: block; }
+        .perfil-toggle {
+            background: transparent; border: 1px solid #333; color: #aaa;
+        }
+        .perfil-toggle:hover { border-color: #0077cc; color: #0077cc; }
+
+        .perfil-toolbar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+        .perfil-toolbar button {
+            padding: 8px 14px; border-radius: 8px; cursor: pointer;
+            font-family: 'Poppins', sans-serif; font-size: 13px;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-eliminar {
+            background: transparent; border: 1px solid #5c2424; color: #ff6b6b;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .btn-eliminar:hover { background: rgba(255,107,107,0.08); border-color: #ff6b6b; }
+
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.75); z-index: 100;
+            align-items: center; justify-content: center;
+        }
+        .modal-overlay.visible { display: flex; }
+        .modal-box {
+            background: #111; border: 1px solid #333; border-radius: 14px;
+            padding: 32px 28px; max-width: 380px; width: 90%;
+        }
+        .modal-box h3 { font-size: 18px; margin-bottom: 10px; }
+        .modal-box p { color: #888; font-size: 14px; line-height: 1.5; margin-bottom: 24px; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .btn-cancelar-modal {
+            background: transparent; border: 1px solid #333; color: #aaa;
+            padding: 10px 18px; border-radius: 8px; cursor: pointer;
+            font-family: 'Poppins', sans-serif; font-size: 14px;
+        }
+        .btn-confirmar-eliminar {
+            background: #cc2200; color: white; border: none;
+            padding: 10px 18px; border-radius: 8px; cursor: pointer;
+            font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 500;
+        }
+        .btn-confirmar-eliminar:hover { background: #aa1a00; }
+
+        @media (max-width: 600px) {
+            .area-section { padding: 30px 16px; }
+            .area-header h1 { font-size: 22px; }
+            .marcacao-card { flex-direction: column; }
+            .marcacao-right { flex-direction: row; align-items: center; }
+        }
+    </style>
+</head>
+<body id="servicos">
+<header>
+    <nav class="navbar">
+        <a href="../index.html" class="logo"><img src="../images/atx.png" alt="Logo"></a>
+        <ul class="nav-links">
+            <li><a href="../index.html" class="nav-link">Início</a></li>
+            <li><a href="servicos.html" class="nav-link">Serviços</a></li>
+            <li><a href="marcas.html" class="nav-link">Marcas</a></li>
+            <li><a href="galeria.html" class="nav-link">Galeria</a></li>
+            <li><a href="contactos.html" class="nav-link">Contactos</a></li>
+            <li><a href="login.html" class="nav-link" id="navAuthLink">Entrar</a></li>
+        </ul>
+        <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+    </nav>
+</header>
+
+<section class="area-section">
+    <div class="area-header">
+        <div>
+            <h1>Minha Área</h1>
+            <p class="saudacao" id="saudacao"></p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+            <a href="reserva.html" class="btn-acompanhar">+ Nova Marcação</a>
+            <button class="btn-sair" onclick="sair()">Sair</button>
+        </div>
+    </div>
+
+    <p class="secao-titulo">As minhas marcações</p>
+    <div id="listaMarcacoes">
+        <p style="color:#666;font-size:14px">A carregar...</p>
+    </div>
+
+    <div style="margin-top:48px;padding-top:24px;border-top:1px solid #1a1a1a;">
+        <div class="perfil-toolbar">
+            <button class="perfil-toggle" id="btnToggleEditar" onclick="toggleEditarPerfil()">
+                <i class="bi bi-gear"></i> Editar perfil
+            </button>
+            <button class="btn-eliminar" onclick="abrirModalEliminar()">
+                <i class="bi bi-trash"></i> Eliminar a minha conta
+            </button>
+        </div>
+
+        <div id="painelEditarPerfil" style="display:none;">
+            <p class="secao-titulo">Dados de contacto</p>
+            <div class="perfil-card">
+                <div class="perfil-field">
+                    <label>Email</label>
+                    <input type="email" id="perfilEmail">
+                </div>
+                <div class="perfil-field">
+                    <label>Telemóvel</label>
+                    <input type="tel" id="perfilTelefone" placeholder="+351 912 345 678">
+                </div>
+                <div class="perfil-checkbox">
+                    <input type="checkbox" id="perfilAceitaSms">
+                    <label for="perfilAceitaSms">Quero receber SMS com promoções e avisos de férias.</label>
+                </div>
+                <div class="perfil-field">
+                    <label>Password (confirma para guardar alterações)</label>
+                    <input type="password" id="perfilPasswordConfirm" autocomplete="current-password">
+                </div>
+                <button class="btn-perfil" onclick="guardarPerfil()">Guardar alterações</button>
+                <p class="perfil-msg" id="perfilMsg"></p>
+            </div>
+
+            <p class="secao-titulo">Alterar password</p>
+            <div class="perfil-card">
+                <div class="perfil-row">
+                    <div class="perfil-field">
+                        <label>Password atual</label>
+                        <input type="password" id="passAtual" autocomplete="current-password">
+                    </div>
+                    <div class="perfil-field">
+                        <label>Nova password</label>
+                        <input type="password" id="passNova" autocomplete="new-password">
+                    </div>
+                </div>
+                <button class="btn-perfil" onclick="mudarPassword()">Alterar password</button>
+                <p class="perfil-msg" id="passMsg"></p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modal de confirmação -->
+<div class="modal-overlay" id="modalEliminar">
+    <div class="modal-box">
+        <h3>Eliminar conta</h3>
+        <p>Tens a certeza? Os teus dados pessoais serão removidos permanentemente. As marcações existentes ficam registadas na loja mas sem associação à tua conta.</p>
+        <div class="modal-actions">
+            <button class="btn-cancelar-modal" onclick="fecharModalEliminar()">Cancelar</button>
+            <button class="btn-confirmar-eliminar" onclick="eliminarConta()">Sim, eliminar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmação de cancelamento de marcação -->
+<div class="modal-overlay" id="modalCancelar">
+    <div class="modal-box">
+        <h3>Cancelar marcação</h3>
+        <p>Tens a certeza que queres cancelar a marcação <strong id="cancelarNumeroPedido"></strong>? Esta ação não pode ser revertida.</p>
+        <div class="modal-actions">
+            <button class="btn-cancelar-modal" onclick="fecharModalCancelar()">Voltar</button>
+            <button class="btn-confirmar-eliminar" onclick="confirmarCancelar()">Sim, cancelar marcação</button>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>© ATXcyclingstore</p>
+    <p>Projeto demonstrativo. Não é o site oficial da empresa.</p>
+    <a href="/pages/privacy.html">Política de Privacidade</a>
+</footer>
+
+<script src="../js/script.js"></script>
+<script>
+    const token = localStorage.getItem('atx_access');
+    if (!token) window.location.href = 'login.html?next=minha-area.html';
+
+    const nome = localStorage.getItem('atx_nome') || '';
+    document.getElementById('saudacao').textContent = `Olá, ${nome.split(' ')[0]}`;
+
+    function sair() {
+        localStorage.removeItem('atx_access');
+        localStorage.removeItem('atx_refresh');
+        localStorage.removeItem('atx_nome');
+        localStorage.removeItem('atx_email');
+        window.location.href = '../index.html';
+    }
+
+    function abrirModalEliminar() {
+        document.getElementById('modalEliminar').classList.add('visible');
+    }
+
+    function fecharModalEliminar() {
+        document.getElementById('modalEliminar').classList.remove('visible');
+    }
+
+    async function eliminarConta() {
+        try {
+            const res = await fetch(`${API_URL}/api/auth/delete-account/`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            if (!res.ok) throw new Error('Erro ao eliminar conta.');
+            sair();
+        } catch (e) {
+            fecharModalEliminar();
+            alert(e.message);
+        }
+    }
+
+    // fechar modal ao clicar fora
+    document.getElementById('modalEliminar').addEventListener('click', function(e) {
+        if (e.target === this) fecharModalEliminar();
+    });
+    document.getElementById('modalCancelar').addEventListener('click', function(e) {
+        if (e.target === this) fecharModalCancelar();
+    });
+
+    function toggleEditarPerfil() {
+        const painel = document.getElementById('painelEditarPerfil');
+        const aberto = painel.style.display !== 'none';
+        painel.style.display = aberto ? 'none' : 'block';
+        if (!aberto) carregarPerfil();
+    }
+
+    async function carregarPerfil() {
+        try {
+            const res = await fetch(`${API_URL}/api/auth/me/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.status === 401) { sair(); return; }
+            const data = await res.json();
+            document.getElementById('perfilEmail').value = data.email || '';
+            document.getElementById('perfilTelefone').value = data.telefone || '';
+            document.getElementById('perfilAceitaSms').checked = !!data.aceita_sms;
+        } catch {
+            // ignora, campos ficam vazios
+        }
+    }
+
+    async function guardarPerfil() {
+        const email = document.getElementById('perfilEmail').value.trim();
+        const telefone = document.getElementById('perfilTelefone').value.trim();
+        const aceita_sms = document.getElementById('perfilAceitaSms').checked;
+        const password = document.getElementById('perfilPasswordConfirm').value;
+        const msgEl = document.getElementById('perfilMsg');
+        msgEl.className = 'perfil-msg';
+
+        if (!password) {
+            msgEl.textContent = 'Confirma a tua password para guardar as alterações.';
+            msgEl.classList.add('erro', 'visible');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/api/auth/update-profile/`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ email, telefone, aceita_sms, password }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Erro ao guardar alterações.');
+
+            localStorage.setItem('atx_email', data.email);
+            document.getElementById('perfilPasswordConfirm').value = '';
+            msgEl.textContent = 'Alterações guardadas com sucesso.';
+            msgEl.classList.add('sucesso', 'visible');
+        } catch (e) {
+            msgEl.textContent = e.message;
+            msgEl.classList.add('erro', 'visible');
+        }
+    }
+
+    async function mudarPassword() {
+        const password_atual = document.getElementById('passAtual').value;
+        const password_nova = document.getElementById('passNova').value;
+        const msgEl = document.getElementById('passMsg');
+        msgEl.className = 'perfil-msg';
+
+        if (password_nova.length < 8) {
+            msgEl.textContent = 'A nova password deve ter pelo menos 8 caracteres.';
+            msgEl.classList.add('erro', 'visible');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/api/auth/change-password/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ password_atual, password_nova }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Erro ao alterar password.');
+
+            document.getElementById('passAtual').value = '';
+            document.getElementById('passNova').value = '';
+            msgEl.textContent = 'Password alterada com sucesso.';
+            msgEl.classList.add('sucesso', 'visible');
+        } catch (e) {
+            msgEl.textContent = e.message;
+            msgEl.classList.add('erro', 'visible');
+        }
+    }
+
+    function estadoClass(key) { return `estado-${key}`; }
+
+    async function carregar() {
+        try {
+            const res = await fetch(`${API_URL}/api/minha-area/marcacoes/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.status === 401) { sair(); return; }
+            const data = await res.json();
+            renderLista(data);
+        } catch {
+            document.getElementById('listaMarcacoes').innerHTML =
+                '<p style="color:#ff6b6b;font-size:14px">Erro ao carregar marcações.</p>';
+        }
+    }
+
+    function renderLista(marcacoes) {
+        const el = document.getElementById('listaMarcacoes');
+        if (!marcacoes.length) {
+            el.innerHTML = `
+                <div class="empty-state">
+                    <i class="bi bi-bicycle"></i>
+                    <p>Ainda não tens marcações.</p>
+                    <p style="margin-top:10px"><a href="reserva.html">Marcar serviço agora →</a></p>
+                </div>`;
+            return;
+        }
+
+        el.innerHTML = marcacoes.map(m => `
+            <div class="marcacao-card">
+                <div class="marcacao-top">
+                    <div class="marcacao-info">
+                        <p class="marcacao-numero">${m.numero_pedido}</p>
+                        <p class="marcacao-servico">${m.servico || 'Serviço de bicicleta'}</p>
+                        <p class="marcacao-data">Entrega prevista: ${m.entrega_prevista}</p>
+                    </div>
+                    <div class="marcacao-right">
+                        <span class="estado-badge ${estadoClass(m.estado)}">${m.estado_label}</span>
+                        <a href="tracking.html?token=${m.token_tracking}" class="btn-acompanhar">
+                            <i class="bi bi-eye"></i> Acompanhar
+                        </a>
+                    </div>
+                </div>
+                <div class="marcacao-actions">
+                    <button class="btn-detalhes" id="toggleDet${m.id}" onclick="toggleDetalhes(${m.id})">
+                        <i class="bi bi-chevron-down"></i> Ver detalhes
+                    </button>
+                    ${m.pode_cancelar ? `
+                        <button class="btn-cancelar-marcacao" onclick="abrirModalCancelar(${m.id}, '${m.numero_pedido}')">
+                            <i class="bi bi-x-circle"></i> Cancelar marcação
+                        </button>
+                    ` : ''}
+                </div>
+                <div class="marcacao-detalhes" id="det${m.id}">
+                    ${m.mensagem ? m.mensagem.replace(/</g, '&lt;') : 'Sem observações adicionais nesta marcação.'}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function toggleDetalhes(id) {
+        const det = document.getElementById(`det${id}`);
+        const btn = document.getElementById(`toggleDet${id}`);
+        const aberto = det.classList.toggle('visible');
+        btn.classList.toggle('aberto', aberto);
+        btn.innerHTML = aberto
+            ? '<i class="bi bi-chevron-down"></i> Ocultar detalhes'
+            : '<i class="bi bi-chevron-down"></i> Ver detalhes';
+    }
+
+    let marcacaoParaCancelar = null;
+
+    function abrirModalCancelar(id, numeroPedido) {
+        marcacaoParaCancelar = id;
+        document.getElementById('cancelarNumeroPedido').textContent = numeroPedido;
+        document.getElementById('modalCancelar').classList.add('visible');
+    }
+
+    function fecharModalCancelar() {
+        document.getElementById('modalCancelar').classList.remove('visible');
+        marcacaoParaCancelar = null;
+    }
+
+    async function confirmarCancelar() {
+        if (!marcacaoParaCancelar) return;
+        try {
+            const res = await fetch(`${API_URL}/api/minha-area/marcacoes/${marcacaoParaCancelar}/cancelar/`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Erro ao cancelar marcação.');
+            fecharModalCancelar();
+            carregar();
+        } catch (e) {
+            fecharModalCancelar();
+            alert(e.message);
+        }
+    }
+
+    carregar();
+</script>
+</body>
+</html>

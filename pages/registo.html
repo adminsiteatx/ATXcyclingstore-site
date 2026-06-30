@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Conta | ATXcyclingstore</title>
+    <link rel="icon" type="image/png" href="../favicon_black.png">
+    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@23/build/css/intlTelInput.css">
+    <style>
+        .auth-section {
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+        }
+        .auth-box {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 14px;
+            padding: 40px 36px;
+            width: 100%;
+            max-width: 420px;
+        }
+        .auth-box h1 { font-size: 26px; margin-bottom: 6px; }
+        .auth-box p.sub { color: #888; font-size: 14px; margin-bottom: 28px; }
+        .auth-field { margin-bottom: 18px; }
+        .auth-field label { display: block; font-size: 13px; color: #aaa; margin-bottom: 6px; }
+        .auth-field input {
+            width: 100%; background: #0a0a0a; border: 1px solid #333;
+            border-radius: 8px; padding: 11px 14px; color: white;
+            font-family: 'Poppins', sans-serif; font-size: 15px; box-sizing: border-box;
+        }
+        .auth-field input:focus { outline: none; border-color: #0077cc; }
+        .checkbox-row {
+            display: flex; align-items: flex-start; gap: 10px;
+            margin-bottom: 20px;
+        }
+        .checkbox-row input[type=checkbox] {
+            margin-top: 3px;
+            accent-color: #0077cc;
+            flex-shrink: 0;
+            appearance: checkbox;
+            -webkit-appearance: checkbox;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .checkbox-row label { font-size: 13px; color: #aaa; line-height: 1.4; }
+        .btn-auth {
+            width: 100%; background: #0077cc; color: white; border: none;
+            border-radius: 8px; padding: 13px; font-family: 'Poppins', sans-serif;
+            font-size: 15px; font-weight: 500; cursor: pointer; margin-top: 4px;
+            transition: background 0.2s;
+        }
+        .btn-auth:hover { background: #005fa3; }
+        .auth-link { text-align: center; margin-top: 20px; font-size: 14px; color: #888; }
+        .auth-link a { color: #0077cc; text-decoration: none; }
+        .auth-error { color: #ff6b6b; font-size: 14px; margin-top: 14px; display: none; }
+        .auth-error.visible { display: block; }
+
+        /* intl-tel-input dark theme */
+        .iti { width: 100%; }
+        .iti__tel-input {
+            width: 100%; background: #0a0a0a; border: 1px solid #333;
+            border-radius: 8px; padding: 11px 14px 11px 52px; color: white;
+            font-family: 'Poppins', sans-serif; font-size: 15px; box-sizing: border-box;
+        }
+        .iti__tel-input:focus { outline: none; border-color: #0077cc; }
+        .iti__country-container { position: absolute; }
+        .iti__selected-country { background: transparent; border-right: 1px solid #333; }
+        .iti__selected-country:hover { background: #1a1a1a; }
+        .iti__dropdown-content {
+            background: #111; border: 1px solid #333; border-radius: 8px;
+        }
+        .iti__country.iti__highlight, .iti__country:hover { background: #1a1a1a; }
+        .iti__country-name, .iti__dial-code { color: #ccc; }
+        .iti__search-input {
+            background: #0a0a0a; border: 1px solid #333; color: white;
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+</head>
+<body id="servicos">
+<header>
+    <nav class="navbar">
+        <a href="../index.html" class="logo"><img src="../images/atx.png" alt="Logo"></a>
+        <ul class="nav-links">
+            <li><a href="../index.html" class="nav-link">Início</a></li>
+            <li><a href="servicos.html" class="nav-link">Serviços</a></li>
+            <li><a href="marcas.html" class="nav-link">Marcas</a></li>
+            <li><a href="galeria.html" class="nav-link">Galeria</a></li>
+            <li><a href="contactos.html" class="nav-link">Contactos</a></li>
+            <li><a href="login.html" class="nav-link" id="navAuthLink">Entrar</a></li>
+        </ul>
+        <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+    </nav>
+</header>
+
+<section class="auth-section">
+    <div class="auth-box">
+        <h1>Criar Conta</h1>
+        <p class="sub">Regista-te para marcar serviços e acompanhar o estado da tua bicicleta.</p>
+
+        <div class="auth-field">
+            <label>Nome completo</label>
+            <input type="text" id="nome" autocomplete="name">
+        </div>
+        <div class="auth-field">
+            <label>Email</label>
+            <input type="email" id="email" autocomplete="email">
+        </div>
+        <div class="auth-field">
+            <label>Telemóvel</label>
+            <input type="tel" id="telefone" autocomplete="tel" placeholder="912 345 678">
+        </div>
+        <div class="auth-field">
+            <label>Password</label>
+            <input type="password" id="password" autocomplete="new-password">
+        </div>
+
+        <div class="checkbox-row">
+            <input type="checkbox" id="aceita_sms" checked>
+            <label for="aceita_sms">Quero receber SMS com promoções e avisos de férias da ATXcyclingstore.</label>
+        </div>
+
+        <button class="btn-auth" onclick="registar()">Criar Conta</button>
+        <p class="auth-error" id="authError"></p>
+
+        <p class="auth-link">Já tens conta? <a href="login.html">Entra aqui</a></p>
+    </div>
+</section>
+
+<footer>
+    <p>© ATXcyclingstore</p>
+    <p>Projeto demonstrativo. Não é o site oficial da empresa.</p>
+    <a href="/pages/privacy.html">Política de Privacidade</a>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@23/build/js/intlTelInput.min.js"></script>
+<script src="../js/script.js"></script>
+<script>
+    if (localStorage.getItem('atx_access')) {
+        window.location.href = '../index.html';
+    }
+
+    const iti = window.intlTelInput(document.getElementById('telefone'), {
+        initialCountry: 'pt',
+        nationalMode: false,
+        useFullscreenPopup: false,
+        loadUtilsOnInit: 'https://cdn.jsdelivr.net/npm/intl-tel-input@23/build/js/utils.js',
+    });
+
+    async function registar() {
+        const nome      = document.getElementById('nome').value.trim();
+        const email     = document.getElementById('email').value.trim();
+        const password  = document.getElementById('password').value;
+        const aceita    = document.getElementById('aceita_sms').checked;
+        const errEl     = document.getElementById('authError');
+        errEl.classList.remove('visible');
+
+        if (!nome || !email || !password) {
+            errEl.textContent = 'Preenche todos os campos obrigatórios.';
+            errEl.classList.add('visible');
+            return;
+        }
+        const rawTel = document.getElementById('telefone').value.trim();
+        const dialCode = (iti.getSelectedCountryData() || {}).dialCode || '';
+        const telNum = rawTel.startsWith('+') ? rawTel : (dialCode ? '+' + dialCode + rawTel : rawTel);
+        if (!rawTel || rawTel.replace(/\D/g, '').length < 7) {
+            errEl.textContent = 'Introduz um número de telemóvel válido.';
+            errEl.classList.add('visible');
+            return;
+        }
+        if (password.length < 8) {
+            errEl.textContent = 'A password deve ter pelo menos 8 caracteres.';
+            errEl.classList.add('visible');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/api/auth/register/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome, email, telefone: telNum, password, aceita_sms: aceita }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Erro ao criar conta.');
+
+            localStorage.setItem('atx_access', data.access);
+            localStorage.setItem('atx_refresh', data.refresh);
+            localStorage.setItem('atx_nome', data.nome);
+            localStorage.setItem('atx_email', data.email);
+
+            window.location.href = '../index.html';
+        } catch (e) {
+            errEl.textContent = e.message;
+            errEl.classList.add('visible');
+        }
+    }
+</script>
+</body>
+</html>

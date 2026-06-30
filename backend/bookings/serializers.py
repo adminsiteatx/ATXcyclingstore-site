@@ -4,9 +4,13 @@ from django.utils import timezone
 import datetime
 
 
-def get_capacidade():
-    config = CapacidadeSemanal.objects.first()
-    return config.capacidade if config else 5
+VAGAS_PADRAO = 10
+
+def get_capacidade(segunda: datetime.date) -> int:
+    try:
+        return CapacidadeSemanal.objects.get(semana=segunda).vagas_total
+    except CapacidadeSemanal.DoesNotExist:
+        return VAGAS_PADRAO
 
 
 def bookings_na_semana(data: datetime.date) -> int:
@@ -22,7 +26,7 @@ class BookingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Booking
-        fields = ['id', 'nome', 'email', 'data', 'mensagem',
+        fields = ['id', 'nome', 'email', 'telefone', 'data', 'mensagem',
                   'estado', 'token_tracking', 'numero_pedido']
         read_only_fields = ['id', 'estado', 'token_tracking', 'numero_pedido']
 
@@ -40,12 +44,13 @@ class BookingSerializer(serializers.ModelSerializer):
             )
 
         # verificar capacidade da semana
-        capacidade = get_capacidade()
+        segunda = value - datetime.timedelta(days=value.weekday())
+        capacidade = get_capacidade(segunda)
         total = bookings_na_semana(value)
 
         if total >= capacidade:
             raise serializers.ValidationError(
-                f"A semana de {value.strftime('%d/%m/%Y')} já está completa ({capacidade} marcações)."
+                f"Sem disponibilidade para esta semana."
             )
 
         return value

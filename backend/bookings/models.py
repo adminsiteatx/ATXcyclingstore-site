@@ -1,18 +1,34 @@
 from django.db import models
+from django.contrib.auth.models import User
 import uuid
 
 
+class Cliente(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='cliente')
+    telefone = models.CharField(max_length=20)
+    aceita_sms = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Cliente"
+        verbose_name_plural = "Clientes"
+
+    def __str__(self):
+        return f"{self.user.get_full_name()} ({self.user.email})"
+
+
 class CapacidadeSemanal(models.Model):
-    """Configuração da capacidade máxima de bicicletas por semana."""
-    capacidade = models.PositiveIntegerField(default=5)
+    """Capacidade máxima de marcações por semana (identificada pela segunda-feira)."""
+    semana = models.DateField(unique=True)
+    vagas_total = models.PositiveIntegerField(default=10)
     atualizado_em = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = "Capacidade Semanal"
-        verbose_name_plural = "Capacidade Semanal"
+        verbose_name_plural = "Capacidades Semanais"
+        ordering = ['semana']
 
     def __str__(self):
-        return f"Capacidade: {self.capacidade} bicicletas/semana"
+        return f"Semana {self.semana.isoformat()}: {self.vagas_total} vagas"
 
 
 class Booking(models.Model):
@@ -25,9 +41,11 @@ class Booking(models.Model):
         ('entregue', 'Entregue'),
     ]
 
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='bookings')
     nome = models.CharField(max_length=100)
     email = models.EmailField()
-    data = models.DateField()  # agora só a data (semana), sem hora fixa
+    telefone = models.CharField(max_length=20, blank=True)
+    data = models.DateField()
     mensagem = models.TextField(blank=True)
     event_id = models.CharField(max_length=255, blank=True, null=True)
     criado_em = models.DateTimeField(auto_now_add=True)

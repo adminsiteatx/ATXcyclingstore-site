@@ -2,6 +2,18 @@ const API_URL = (window.location.hostname === 'localhost' || window.location.hos
     ? 'http://localhost:8000'
     : 'https://atxcyclingstore.onrender.com';
 
+// Atualizar link de auth na navbar
+(function () {
+    const authLink = document.getElementById('navAuthLink');
+    if (!authLink) return;
+    if (localStorage.getItem('atx_access')) {
+        const primeiroNome = (localStorage.getItem('atx_nome') || '').split(' ')[0];
+        authLink.textContent = `Olá ${primeiroNome} · Minha Área`;
+        authLink.href = authLink.href.replace('login.html', 'minha-area.html')
+            .replace('pages/login.html', 'pages/minha-area.html');
+    }
+})();
+
 /* guarda o scroll quando é dado refresh */
 if ("scrollRestoration" in history) {
     history.scrollRestoration = "auto";
