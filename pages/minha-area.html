@@ -214,9 +214,21 @@
 
         @media (max-width: 600px) {
             .area-section { padding: 30px 16px; }
+            .area-header { flex-direction: column; align-items: flex-start; }
             .area-header h1 { font-size: 22px; }
-            .marcacao-card { flex-direction: column; }
-            .marcacao-right { flex-direction: row; align-items: center; }
+            .area-header-actions { width: 100%; display: flex; gap: 8px; }
+            .area-header-actions a,
+            .area-header-actions button { flex: 1; text-align: center; justify-content: center; }
+            .marcacao-info { min-width: 0; }
+            .marcacao-right { flex-direction: row; align-items: center; flex-wrap: wrap; gap: 6px; }
+            .marcacao-actions { flex-wrap: wrap; gap: 10px; }
+            .btn-cancelar-marcacao { margin-left: 0; }
+            .perfil-toolbar { flex-direction: column; }
+            .perfil-toolbar button { width: 100%; justify-content: center; }
+        }
+        @media (max-width: 400px) {
+            .marcacao-right { flex-direction: column; align-items: flex-start; }
+            .estado-badge { font-size: 11px; }
         }
     </style>
 </head>
@@ -242,7 +254,7 @@
             <h1>Minha Área</h1>
             <p class="saudacao" id="saudacao"></p>
         </div>
-        <div style="display:flex;gap:10px;align-items:center;">
+        <div class="area-header-actions">
             <a href="reserva.html" class="btn-acompanhar">+ Nova Marcação</a>
             <button class="btn-sair" onclick="sair()">Sair</button>
         </div>
