@@ -84,7 +84,11 @@ class BookingCreateView(generics.CreateAPIView):
 
 class AvailableDaysView(APIView):
     def get(self, request):
-        hoje = timezone.localdate()
+        agora = timezone.localtime()
+        hoje = agora.date()
+        # sábado (weekday 5) fecha às 10h, dias de semana fecham às 15h
+        hora_fecho = 10 if hoje.weekday() == 5 else 15
+        data_minima = hoje + datetime.timedelta(days=1) if agora.hour >= hora_fecho else hoje
         dias = []
 
         for i in range(5):
@@ -101,7 +105,7 @@ class AvailableDaysView(APIView):
             # terça (weekday 1) a sábado (weekday 5)
             for offset in range(1, 6):
                 dia = segunda + datetime.timedelta(days=offset)
-                if dia < hoje:
+                if dia < data_minima:
                     continue
                 dias.append({
                     "data":        dia.isoformat(),
