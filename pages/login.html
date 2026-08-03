@@ -25,6 +25,14 @@
         }
         .auth-box h1 { font-size: 26px; margin-bottom: 6px; }
         .auth-box p.sub { color: #888; font-size: 14px; margin-bottom: 28px; }
+        .btn-fechar-login {
+            position: absolute; top: 14px; right: 14px;
+            background: none; border: none; color: #888; font-size: 22px;
+            cursor: pointer; line-height: 1; padding: 4px 8px; border-radius: 6px;
+            transition: color 0.2s;
+        }
+        .btn-fechar-login:hover { color: #fff; }
+        .auth-box { position: relative; }
         .auth-field { margin-bottom: 18px; }
         .auth-field label { display: block; font-size: 13px; color: #aaa; margin-bottom: 6px; }
         .auth-field input {
@@ -64,6 +72,7 @@
 
 <section class="auth-section">
     <div class="auth-box">
+        <button class="btn-fechar-login" id="btnFechar" style="display:none" onclick="fecharLogin()" title="Fechar">✕</button>
         <h1>Entrar</h1>
         <p class="sub">Acede à tua conta para marcar e acompanhar serviços.</p>
 
@@ -94,8 +103,18 @@
 <script>
     // se já estiver autenticado, redirecionar para minha área
     if (localStorage.getItem('atx_access')) {
-        const dest = new URLSearchParams(window.location.search).get('next') || '../index.html';
+        const dest = new URLSearchParams(window.location.search).get('next') || 'minha-area.html';
         window.location.href = dest;
+    }
+
+    // mostrar botão X se veio de um ?next= (ex: reserva)
+    const nextParam = new URLSearchParams(window.location.search).get('next');
+    if (nextParam) {
+        document.getElementById('btnFechar').style.display = 'block';
+    }
+
+    function fecharLogin() {
+        history.back();
     }
 
     async function entrar() {
@@ -124,7 +143,7 @@
             localStorage.setItem('atx_nome', data.nome);
             localStorage.setItem('atx_email', data.email);
 
-            const dest = new URLSearchParams(window.location.search).get('next') || '../index.html';
+            const dest = new URLSearchParams(window.location.search).get('next') || 'minha-area.html';
             window.location.href = dest;
         } catch (e) {
             errEl.textContent = e.message;
