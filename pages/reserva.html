@@ -524,11 +524,21 @@
     if (!atxToken) {
         window.location.href = 'login.html?next=reserva.html';
     } else {
-        // pré-preencher nome e email
+        // pré-preencher nome e email do localStorage (imediato)
         const nomeGuardado  = localStorage.getItem('atx_nome') || '';
         const emailGuardado = localStorage.getItem('atx_email') || '';
         if (nomeGuardado)  document.getElementById('nome').value  = nomeGuardado;
         if (emailGuardado) document.getElementById('email').value = emailGuardado;
+
+        // buscar telefone (e dados atualizados) da API
+        fetch(`${API_URL}/api/auth/me/`, {
+            headers: { 'Authorization': `Bearer ${atxToken}` }
+        }).then(r => r.ok ? r.json() : null).then(data => {
+            if (!data) return;
+            if (data.nome)     document.getElementById('nome').value     = data.nome;
+            if (data.email)    document.getElementById('email').value    = data.email;
+            if (data.telefone) document.getElementById('telefone').value = data.telefone;
+        }).catch(() => {});
     }
 
     // ── Init ──────────────────────────────────────────────────────────────
