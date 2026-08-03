@@ -10,7 +10,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from twilio.rest import Client as TwilioClient
 
 from .models import Cliente, Booking
 from .views import _entrega, MESES_PT
@@ -206,25 +205,27 @@ class SmsBroadcastView(APIView):
         if not clientes.exists():
             return Response({'enviados': 0, 'erros': 0})
 
-        sid   = settings.TWILIO_ACCOUNT_SID
-        token_tw = settings.TWILIO_AUTH_TOKEN
-        from_nr  = settings.TWILIO_FROM
+        api_key = os.environ.get('BREVO_API_KEY', '')
+        if not api_key:
+            return Response({'error': 'Brevo não configurado no servidor.'}, status=500)
 
-        if not all([sid, token_tw, from_nr]):
-            return Response({'error': 'Twilio não configurado no servidor.'}, status=500)
-
-        client = TwilioClient(sid, token_tw)
+        import requests as http_requests
         enviados = 0
         erros = 0
 
         for c in clientes:
             try:
-                client.messages.create(
-                    body=mensagem,
-                    from_=from_nr,
-                    to=c.telefone,
+                resp = http_requests.post(
+                    'https://api.brevo.com/v3/transactionalSMS/sms',
+                    headers={'api-key': api_key, 'Content-Type': 'application/json'},
+                    json={'sender': 'ATX', 'recipient': c.telefone, 'content': mensagem},
+                    timeout=10,
                 )
-                enviados += 1
+                if resp.status_code in (200, 201):
+                    enviados += 1
+                else:
+                    print(f"Erro SMS Brevo para {c.telefone}: {resp.text}")
+                    erros += 1
             except Exception as e:
                 print(f"Erro SMS para {c.telefone}: {e}")
                 erros += 1
