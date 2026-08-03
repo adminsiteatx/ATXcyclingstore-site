@@ -589,6 +589,15 @@ footer {
     gap: 14px;
     font-size: 20px;
     margin-bottom: 12px;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    min-width: 0;
+}
+
+.contacto-item span {
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 .contacto-item i {
@@ -822,6 +831,7 @@ footer {
     max-width: 700px;
     margin-left: auto;
     margin-right: auto;
+    padding: 0 20px;
 }
 
 /* ============================= */
@@ -1531,6 +1541,12 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
         padding-bottom: 60px;
     }
 
+    /* reserva: reduz padding vertical excessivo */
+    .reserva-section {
+        padding-top: 50px;
+        padding-bottom: 60px;
+    }
+
     /* NAVBAR */
     .navbar {
         padding: 15px 20px;
@@ -1608,6 +1624,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 
     .hero-marcas img {
         margin: 40px;
+    }
+
+    .brands-section {
+        padding: 60px 20px;
     }
 
     .brands-grid img {
@@ -1689,6 +1709,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 
 
     /* CONTACTOS */
+    .contact-section {
+        padding: 60px 20px;
+    }
+
     .contact-container {
         grid-template-columns:1fr;
         gap: 40px;
@@ -1705,6 +1729,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 
 
     /* GALERIA */
+    #galeria {
+        padding: 70px 20px;
+    }
+
     .grid-galeria {
         column-count: 2;
     }
@@ -1873,6 +1901,15 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 
         width: 100%;
 
+    }
+
+}
+
+/* ECRÃS MUITO PEQUENOS (< 400px) */
+@media (max-width: 400px) {
+
+    .auth-box {
+        padding: 32px 20px;
     }
 
 }
