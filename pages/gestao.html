@@ -1055,9 +1055,9 @@ ATXcyclingstore`;
 
         const assunto = encodeURIComponent('Diagnóstico da sua bicicleta - ATXcyclingstore');
         const corpoEnc = encodeURIComponent(corpo);
-        const mailto = `https://mail.google.com/mail/u/adminsiteatx@gmail.com/?view=cm&to=${encodeURIComponent(b.email)}&su=${assunto}&body=${corpoEnc}`;
+        const mailto = `mailto:${encodeURIComponent(b.email)}?subject=${assunto}&body=${corpoEnc}`;
 
-        window.open(mailto, '_blank');
+        window.location.href = mailto;
     }
 
     function toggleDetalhe(id) {
