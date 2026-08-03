@@ -1517,13 +1517,8 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 
 
-/* MOBILE */
-@media (max-width: 768px) {
-
-    /* ESPAÇAMENTO GLOBAL */
-    section {
-        padding: 70px 20px;
-    }
+/* TABLET + MOBILE */
+@media (max-width: 1024px) {
 
     /* NAVBAR */
     .navbar {
@@ -1558,6 +1553,15 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 
     .hamburger {
         display: flex;
+    }
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+
+    /* ESPAÇAMENTO GLOBAL */
+    section {
+        padding: 70px 20px;
     }
 
 
