@@ -1520,6 +1520,17 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 /* TABLET + MOBILE */
 @media (max-width: 1024px) {
 
+    /* remove min-height excessivo em secções com pouco conteúdo */
+    .auth-section,
+    .tracking-section,
+    .area-section,
+    .confirmacao-section,
+    .gestao-section {
+        min-height: auto;
+        padding-top: 40px;
+        padding-bottom: 60px;
+    }
+
     /* NAVBAR */
     .navbar {
         padding: 15px 20px;
