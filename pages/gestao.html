@@ -529,6 +529,87 @@
 
         .vaga-save-btn:hover { background: #1a4a1a; }
 
+        /* BOTÃO NOVA MARCAÇÃO */
+        .btn-nova-m {
+            background: #0077cc;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 22px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+            margin-bottom: 20px;
+        }
+        .btn-nova-m:hover { background: #005fa3; }
+
+        /* STEPS NO MODAL NOVA MARCAÇÃO */
+        .nm-steps { display: flex; gap: 20px; margin-bottom: 24px; flex-wrap: wrap; }
+        .nm-step {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 13px; color: #666; opacity: 0.5; transition: 0.2s;
+        }
+        .nm-step span {
+            width: 24px; height: 24px; border-radius: 50%;
+            border: 1px solid #444; display: flex; align-items: center;
+            justify-content: center; font-size: 12px; flex-shrink: 0;
+        }
+        .nm-step.active { color: white; opacity: 1; }
+        .nm-step.active span { background: #0077cc; border-color: #0077cc; }
+        .nm-step.done { opacity: 1; color: #aaa; }
+        .nm-step.done span { background: #0077cc; border-color: #0077cc; color: white; }
+
+        .nm-form-step { display: none; }
+        .nm-form-step.active { display: block; }
+
+        /* SELETOR DE DIAS */
+        .nm-semana-card {
+            background: #1a1a1a; border: 1px solid #2a2a2a;
+            border-radius: 10px; padding: 14px 16px; margin-top: 8px;
+        }
+        .nm-semana-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+        .nm-nav-btn {
+            background: #222; border: 1px solid #333; color: #aaa;
+            width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
+            font-size: 16px; display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; transition: 0.15s; font-family: 'Poppins', sans-serif;
+        }
+        .nm-nav-btn:hover:not(:disabled) { border-color: #0077cc; color: white; }
+        .nm-nav-btn:disabled { opacity: 0.3; cursor: default; }
+        .nm-semana-vagas {
+            font-size: 12px; padding: 3px 10px; border-radius: 12px;
+            background: #1a2a1a; color: #6dbe6d; border: 1px solid #2e5e2e;
+        }
+        .nm-semana-vagas.poucas { background: #2a1a00; color: #f0a030; border-color: #6e4a00; }
+        .nm-semana-vagas.cheia  { background: #1a0a0a; color: #ff6b6b; border-color: #5a1a1a; }
+        .nm-dias-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+        .nm-dia-chip {
+            padding: 8px 14px; border: 1px solid #333; border-radius: 8px;
+            background: #222; color: #ccc; font-family: 'Poppins', sans-serif;
+            font-size: 13px; cursor: pointer; transition: 0.15s; white-space: nowrap;
+        }
+        .nm-dia-chip:hover { border-color: #0077cc; color: white; }
+        .nm-dia-chip.ativo { border-color: #0077cc; background: #0a1a2a; color: white; }
+        .nm-aviso-entrega {
+            font-size: 13px; color: #4da6ff; margin-top: 12px;
+            padding: 10px 14px; background: #071828;
+            border-left: 3px solid #0077cc; border-radius: 4px;
+        }
+
+        /* RESUMO */
+        .nm-resumo {
+            background: #1a1a1a; border: 1px solid #2a2a2a;
+            border-radius: 8px; padding: 18px 20px;
+        }
+        .nm-resumo p { margin-bottom: 10px; font-size: 14px; color: #ccc; }
+        .nm-resumo p:last-child { margin-bottom: 0; }
+        .nm-resumo strong { color: #777; font-weight: 500; }
+
         @media (max-width: 600px) {
             .vaga-row {
                 grid-template-columns: 1fr 1fr;
@@ -629,6 +710,11 @@
         </div>
 
         <div class="aba-content active" id="aba-marcacoes">
+            <div style="display:flex;justify-content:flex-end">
+                <button class="btn-nova-m" onclick="abrirModalNovaM()">
+                    <i class="bi bi-plus-lg"></i> Nova Marcação
+                </button>
+            </div>
             <div class="filtros" id="filtros">
                 <button class="filtro-btn active" data-estado="todos" onclick="filtrar(this)">Todos</button>
                 <button class="filtro-btn" data-estado="marcada" onclick="filtrar(this)">Marcação Efetuada</button>
@@ -691,6 +777,100 @@
                 <i class="bi bi-envelope"></i> Abrir no Gmail
             </button>
             <button class="modal-cancel-btn" onclick="fecharModal()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL NOVA MARCAÇÃO -->
+<div class="modal-overlay" id="modalNovaMOverlay">
+    <div class="modal" style="max-width:580px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+            <h2 style="margin:0">Nova Marcação</h2>
+            <button onclick="fecharModalNovaM()" style="background:none;border:none;color:#666;font-size:22px;cursor:pointer;line-height:1;padding:4px 8px;border-radius:6px;transition:color 0.2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#666'">✕</button>
+        </div>
+
+        <!-- Steps -->
+        <div class="nm-steps">
+            <div class="nm-step active" id="nmStep1"><span>1</span> Serviço</div>
+            <div class="nm-step" id="nmStep2"><span>2</span> Dados</div>
+            <div class="nm-step" id="nmStep3"><span>3</span> Confirmação</div>
+        </div>
+
+        <!-- Passo 1: Serviço -->
+        <div class="nm-form-step active" id="nmFormStep1">
+            <div class="modal-field">
+                <label>Tipo de serviço</label>
+                <select id="nmServico" style="width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:10px 14px;color:white;font-family:'Poppins',sans-serif;font-size:14px;appearance:none;-webkit-appearance:none;cursor:pointer">
+                    <option>Revisão Simples</option>
+                    <option>Revisão Básica</option>
+                    <option>Revisão Completa BTT (rígida)</option>
+                    <option>Revisão Completa BTT (suspensão total)</option>
+                    <option>Revisão Completa Estrada</option>
+                    <option>Revisão Completa E-Bike</option>
+                    <option>Suspensão</option>
+                    <option>Outro serviço</option>
+                </select>
+            </div>
+            <div class="modal-field">
+                <label>Modelo da bicicleta *</label>
+                <input type="text" id="nmModeloBike" placeholder="Marca e modelo">
+            </div>
+            <div class="modal-field">
+                <label>Dia preferencial *</label>
+                <div id="nmSemanasLoader"><p style="color:#666;font-size:13px;margin:8px 0">A carregar disponibilidade...</p></div>
+                <div class="nm-semana-card" id="nmSemanaCard" style="display:none">
+                    <div class="nm-semana-nav">
+                        <button type="button" class="nm-nav-btn" id="nmNavAnterior" onclick="nmNavSemana(-1)">‹</button>
+                        <div style="flex:1;display:flex;align-items:center;justify-content:space-between;gap:8px">
+                            <span style="font-size:13px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.04em" id="nmNavTitulo"></span>
+                            <span class="nm-semana-vagas" id="nmNavVagas"></span>
+                        </div>
+                        <button type="button" class="nm-nav-btn" id="nmNavSeguinte" onclick="nmNavSemana(1)">›</button>
+                    </div>
+                    <div id="nmSemanaDias"></div>
+                </div>
+                <div class="nm-aviso-entrega" id="nmAvisoEntrega" style="display:none"></div>
+                <input type="hidden" id="nmDataEscolhida">
+            </div>
+            <div class="modal-field">
+                <label>Observações (opcional)</label>
+                <textarea id="nmMensagem" rows="3" placeholder="Descreve o problema ou serviço pretendido..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-gmail-btn" onclick="nmNextStep(1)">Seguinte →</button>
+                <button class="modal-cancel-btn" onclick="fecharModalNovaM()">Cancelar</button>
+            </div>
+        </div>
+
+        <!-- Passo 2: Dados -->
+        <div class="nm-form-step" id="nmFormStep2">
+            <div class="modal-field">
+                <label>Nome completo *</label>
+                <input type="text" id="nmNome" placeholder="Nome do cliente">
+            </div>
+            <div class="modal-field">
+                <label>Email *</label>
+                <input type="email" id="nmEmail" placeholder="email@exemplo.com">
+            </div>
+            <div class="modal-field">
+                <label>Telefone *</label>
+                <input type="tel" id="nmTelefone" placeholder="+351 912 345 678">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-gmail-btn" onclick="nmNextStep(2)">Seguinte →</button>
+                <button class="modal-cancel-btn" onclick="nmPrevStep(2)">← Voltar</button>
+            </div>
+        </div>
+
+        <!-- Passo 3: Confirmação -->
+        <div class="nm-form-step" id="nmFormStep3">
+            <div class="nm-resumo" id="nmResumo"></div>
+            <div class="modal-actions" style="margin-top:20px">
+                <button class="modal-gmail-btn" id="nmSubmitBtn" onclick="nmSubmeter()">
+                    <i class="bi bi-check-lg"></i> Criar Marcação
+                </button>
+                <button class="modal-cancel-btn" onclick="nmPrevStep(3)">← Voltar</button>
+            </div>
         </div>
     </div>
 </div>
@@ -1130,6 +1310,217 @@ ATXcyclingstore`;
         } catch {
             btn.textContent = 'Erro de ligação';
         }
+    }
+
+    // ── NOVA MARCAÇÃO ──────────────────────────────────────────────────────
+    const NM_MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    let nmDiaEscolhido = null;
+    let nmSemanasLista = [];
+    let nmSemanaAtual = 0;
+
+    function abrirModalNovaM() {
+        nmDiaEscolhido = null;
+        nmSemanasLista = [];
+        nmSemanaAtual = 0;
+        ['nmModeloBike','nmMensagem','nmNome','nmEmail','nmTelefone','nmDataEscolhida'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        document.getElementById('nmServico').selectedIndex = 0;
+        document.getElementById('nmAvisoEntrega').style.display = 'none';
+        document.getElementById('nmSemanaCard').style.display = 'none';
+        document.getElementById('nmSemanasLoader').style.display = 'block';
+        document.getElementById('nmSemanasLoader').innerHTML = '<p style="color:#666;font-size:13px;margin:8px 0">A carregar disponibilidade...</p>';
+        const btn = document.getElementById('nmSubmitBtn');
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-check-lg"></i> Criar Marcação'; }
+        nmMostrarStep(1);
+        document.getElementById('modalNovaMOverlay').classList.add('open');
+        nmCarregarDias();
+    }
+
+    function fecharModalNovaM() {
+        document.getElementById('modalNovaMOverlay').classList.remove('open');
+    }
+
+    document.getElementById('modalNovaMOverlay').addEventListener('click', e => {
+        if (e.target === document.getElementById('modalNovaMOverlay')) fecharModalNovaM();
+    });
+
+    function nmMostrarStep(s) {
+        [1,2,3].forEach(i => {
+            document.getElementById(`nmFormStep${i}`).classList.toggle('active', i === s);
+            const stepEl = document.getElementById(`nmStep${i}`);
+            stepEl.classList.remove('active','done');
+            if (i === s) stepEl.classList.add('active');
+            if (i < s)  stepEl.classList.add('done');
+        });
+    }
+
+    function nmNextStep(from) {
+        if (from === 1) {
+            if (!nmDiaEscolhido) { alert('Escolhe um dia antes de continuar.'); return; }
+            if (!document.getElementById('nmModeloBike').value.trim()) { alert('Preenche o modelo da bicicleta.'); return; }
+            nmMostrarStep(2);
+        } else if (from === 2) {
+            const nome  = document.getElementById('nmNome').value.trim();
+            const email = document.getElementById('nmEmail').value.trim();
+            const tel   = document.getElementById('nmTelefone').value.trim();
+            if (!nome || !email || !tel) { alert('Preenche todos os campos obrigatórios.'); return; }
+            nmPreencherResumo();
+            nmMostrarStep(3);
+        }
+    }
+
+    function nmPrevStep(from) { nmMostrarStep(from - 1); }
+
+    function nmPreencherResumo() {
+        const servico = document.getElementById('nmServico').value;
+        const bike    = document.getElementById('nmModeloBike').value;
+        const msg     = document.getElementById('nmMensagem').value.trim() || '—';
+        const nome    = document.getElementById('nmNome').value;
+        const email   = document.getElementById('nmEmail').value;
+        const tel     = document.getElementById('nmTelefone').value;
+        document.getElementById('nmResumo').innerHTML = `
+            <p><strong>Serviço:</strong> ${servico}</p>
+            <p><strong>Bicicleta:</strong> ${bike}</p>
+            <p><strong>Dia:</strong> ${nmDiaEscolhido.label}</p>
+            <p><strong>Entrega prevista:</strong> ${nmDiaEscolhido.entrega}</p>
+            <p><strong>Observações:</strong> ${msg}</p>
+            <hr style="border-color:#2a2a2a;margin:14px 0">
+            <p><strong>Nome:</strong> ${nome}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Telefone:</strong> ${tel}</p>
+        `;
+    }
+
+    async function nmSubmeter() {
+        const btn = document.getElementById('nmSubmitBtn');
+        btn.disabled = true;
+        btn.innerHTML = 'A criar...';
+
+        const servico = document.getElementById('nmServico').value;
+        const bike    = document.getElementById('nmModeloBike').value.trim();
+        const msg     = document.getElementById('nmMensagem').value.trim();
+        const suffix  = msg ? ` — ${msg}` : '';
+
+        const dados = {
+            nome:      document.getElementById('nmNome').value.trim(),
+            email:     document.getElementById('nmEmail').value.trim(),
+            telefone:  document.getElementById('nmTelefone').value.trim(),
+            mensagem:  `[${servico} — ${bike}]${suffix}`,
+            data:      nmDiaEscolhido.data,
+        };
+
+        try {
+            const res = await fetch(`${API_URL}/api/bookings/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados),
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err?.data?.[0] || err?.detail || 'Erro ao criar marcação.');
+            }
+            const booking = await res.json();
+            fecharModalNovaM();
+            carregar();
+            alert(`✅ Marcação ${booking.numero_pedido} criada!\nEmail de confirmação enviado para ${dados.email}.`);
+        } catch (e) {
+            alert(e.message);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-lg"></i> Criar Marcação';
+        }
+    }
+
+    async function nmCarregarDias() {
+        try {
+            const res = await fetch(`${API_URL}/api/available-days/`);
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            nmRenderDias(data);
+        } catch {
+            document.getElementById('nmSemanasLoader').innerHTML =
+                '<p style="color:#ff6b6b;font-size:13px;margin:8px 0">Erro ao carregar dias. ' +
+                '<button onclick="nmCarregarDias()" style="background:none;border:1px solid #ff6b6b;color:#ff6b6b;border-radius:4px;padding:2px 8px;cursor:pointer;font-family:inherit;font-size:12px;margin-left:6px">Tentar novamente</button></p>';
+        }
+    }
+
+    function nmRenderDias(dias) {
+        const loader = document.getElementById('nmSemanasLoader');
+        if (dias.length === 0) {
+            loader.innerHTML = '<p style="color:#666;font-size:13px;margin:8px 0">Sem disponibilidade nas próximas semanas.</p>';
+            return;
+        }
+        loader.style.display = 'none';
+
+        const semanas = new Map();
+        dias.forEach(d => {
+            const dt = new Date(d.data + 'T12:00:00');
+            const dom = dt.getDay();
+            const segunda = new Date(dt);
+            segunda.setDate(dt.getDate() - (dom === 0 ? 6 : dom - 1));
+            const key = segunda.toISOString().split('T')[0];
+            if (!semanas.has(key)) semanas.set(key, { dias: [], disponiveis: d.disponiveis, cheia: d.cheia });
+            semanas.get(key).dias.push(d);
+        });
+
+        nmSemanasLista = [...semanas.values()].map(s => {
+            const p = new Date(s.dias[0].data + 'T12:00:00');
+            const u = new Date(s.dias[s.dias.length - 1].data + 'T12:00:00');
+            const titulo = p.getMonth() === u.getMonth()
+                ? `${p.getDate()}–${u.getDate()} ${NM_MESES[u.getMonth()]}`
+                : `${p.getDate()} ${NM_MESES[p.getMonth()]}–${u.getDate()} ${NM_MESES[u.getMonth()]}`;
+            return { ...s, titulo };
+        });
+
+        nmSemanaAtual = 0;
+        document.getElementById('nmSemanaCard').style.display = 'block';
+        nmRenderSemanaAtual();
+    }
+
+    function nmRenderSemanaAtual() {
+        const s = nmSemanasLista[nmSemanaAtual];
+        document.getElementById('nmNavTitulo').textContent = `Semana de ${s.titulo}`;
+        const vagasEl = document.getElementById('nmNavVagas');
+        vagasEl.textContent = s.cheia ? 'Completa' : `${s.disponiveis} vaga${s.disponiveis !== 1 ? 's' : ''}`;
+        vagasEl.className = `nm-semana-vagas${s.cheia ? ' cheia' : s.disponiveis <= 2 ? ' poucas' : ''}`;
+        document.getElementById('nmNavAnterior').disabled = nmSemanaAtual === 0;
+        document.getElementById('nmNavSeguinte').disabled = nmSemanaAtual === nmSemanasLista.length - 1;
+
+        const diasDiv = document.getElementById('nmSemanaDias');
+        diasDiv.innerHTML = '';
+        const chips = document.createElement('div');
+        chips.className = 'nm-dias-chips';
+        s.dias.forEach(d => {
+            const partes = d.label.split(', ');
+            const labelCurto = (partes[0] || '') + ' ' + (partes[1] || '').split(' ')[0];
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'nm-dia-chip';
+            chip.textContent = labelCurto.trim();
+            if (s.cheia) chip.disabled = true;
+            chip.addEventListener('click', () => nmSelecionarDia(d, chip));
+            chips.appendChild(chip);
+        });
+        diasDiv.appendChild(chips);
+    }
+
+    function nmNavSemana(dir) {
+        nmSemanaAtual = Math.max(0, Math.min(nmSemanasLista.length - 1, nmSemanaAtual + dir));
+        nmDiaEscolhido = null;
+        document.getElementById('nmDataEscolhida').value = '';
+        document.getElementById('nmAvisoEntrega').style.display = 'none';
+        nmRenderSemanaAtual();
+    }
+
+    function nmSelecionarDia(dia, chip) {
+        nmDiaEscolhido = dia;
+        document.getElementById('nmDataEscolhida').value = dia.data;
+        document.querySelectorAll('.nm-dia-chip').forEach(el => el.classList.remove('ativo'));
+        chip.classList.add('ativo');
+        const aviso = document.getElementById('nmAvisoEntrega');
+        aviso.textContent = `Entrega prevista: ${dia.entrega}`;
+        aviso.style.display = 'block';
     }
 </script>
 
