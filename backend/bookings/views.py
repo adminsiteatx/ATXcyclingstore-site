@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.core import signing
 import datetime
 import os
 import json
@@ -160,12 +161,19 @@ class TrackingByNumeroView(APIView):
 # Gestão — listar todas as marcações (protegida por token simples)
 # ---------------------------------------------------------------------------
 
-GESTAO_TOKEN = "atx-gestao-2025"  # mover para .env em produção
+_GESTAO_SESSION_SALT = 'gestao-session'
+_GESTAO_SESSION_MAX_AGE = 43200  # 12 horas
 
 
 def check_gestao_auth(request):
     token = request.headers.get("X-Gestao-Token", "")
-    return token == GESTAO_TOKEN
+    if not token:
+        return False
+    try:
+        signing.loads(token, salt=_GESTAO_SESSION_SALT, max_age=_GESTAO_SESSION_MAX_AGE)
+        return True
+    except Exception:
+        return False
 
 
 class GestaoListView(APIView):

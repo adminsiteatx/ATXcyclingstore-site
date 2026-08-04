@@ -68,6 +68,10 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_THROTTLE_RATES': {
+        'login': '5/min',
+        'gestao_login': '5/min',
+    },
 }
 
 from datetime import timedelta
@@ -92,7 +96,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
 
 from corsheaders.defaults import default_headers
 CORS_ALLOW_HEADERS = list(default_headers) + ["x-gestao-token"]
@@ -179,4 +183,9 @@ CORS_ALLOWED_ORIGINS = [
     "https://atxcyclingstore.vercel.app",
     "https://simaocruzafonso.com",
     "https://www.simaocruzafonso.com",
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^http://localhost(:\d+)?$",
+    r"^http://127\.0\.0\.1(:\d+)?$",
 ]

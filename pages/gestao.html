@@ -879,7 +879,7 @@
     const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
         ? 'http://localhost:8000'
         : 'https://atxcyclingstore.onrender.com';
-    const GESTAO_TOKEN = "atx-gestao-2025";  // deve ser igual ao views.py
+    function getGestaoToken() { return sessionStorage.getItem('gestao_token') || ''; }
 
     const ESTADOS = [
         {key: 'marcada', label: 'Marcação Efetuada'},
@@ -893,25 +893,45 @@
     let allBookings = [];
     let filtroAtivo = 'todos';
 
-    // ── Auth simples (client-side) ────────────────────────────────────────
-    // A verificação real é feita pelo backend (X-Gestao-Token)
-    const LOCAL_PASS = "adminatx2026";   // password de acesso à página
-
-    function login() {
+    // ── Auth via API ──────────────────────────────────────────────────────
+    async function login() {
         const pass = document.getElementById('passwordInput').value;
-        if (pass === LOCAL_PASS) {
+        const errEl = document.getElementById('loginError');
+        errEl.style.display = 'none';
+        try {
+            const res = await fetch(`${API_URL}/api/gestao/auth/`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({password: pass}),
+            });
+            if (!res.ok) {
+                errEl.textContent = res.status === 429 ? 'Demasiadas tentativas. Aguarda 1 minuto.' : 'Password incorreta.';
+                errEl.style.display = 'block';
+                return;
+            }
+            const data = await res.json();
+            sessionStorage.setItem('gestao_token', data.token);
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('dashboard').classList.add('visible');
             sincronizarESilencioso().then(() => { carregar(); carregarVagas(); });
-        } else {
-            document.getElementById('loginError').style.display = 'block';
+        } catch {
+            errEl.textContent = 'Erro de ligação ao servidor.';
+            errEl.style.display = 'block';
         }
     }
 
     function logout() {
+        sessionStorage.removeItem('gestao_token');
         document.getElementById('loginScreen').style.display = 'flex';
         document.getElementById('dashboard').classList.remove('visible');
         document.getElementById('passwordInput').value = '';
+    }
+
+    // Restaurar sessão se o token ainda for válido (tab reaberta na mesma sessão)
+    if (getGestaoToken()) {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('dashboard').classList.add('visible');
+        sincronizarESilencioso().then(() => { carregar(); carregarVagas(); });
     }
 
     document.getElementById('passwordInput').addEventListener('keydown', e => {
@@ -959,7 +979,7 @@
 
             try {
                 const res = await fetch(`${API_URL}/api/gestao/capacidade/?semana=${semanaStr}`, {
-                    headers: {"X-Gestao-Token": GESTAO_TOKEN}
+                    headers: {"X-Gestao-Token": getGestaoToken()}
                 });
                 const d = await res.json();
                 const pct = d.vagas_total > 0 ? d.vagas_usadas / d.vagas_total : 1;
@@ -988,7 +1008,7 @@
         try {
             const res = await fetch(`${API_URL}/api/gestao/capacidade/`, {
                 method: 'POST',
-                headers: {"X-Gestao-Token": GESTAO_TOKEN, "Content-Type": "application/json"},
+                headers: {"X-Gestao-Token": getGestaoToken(), "Content-Type": "application/json"},
                 body: JSON.stringify({semana: semanaStr, vagas_total: vagas})
             });
             if (res.ok) {
@@ -1019,7 +1039,7 @@
         try {
             const res = await fetch(`${API_URL}/api/gestao/sms-broadcast/`, {
                 method: 'POST',
-                headers: {'X-Gestao-Token': GESTAO_TOKEN, 'Content-Type': 'application/json'},
+                headers: {'X-Gestao-Token': getGestaoToken(), 'Content-Type': 'application/json'},
                 body: JSON.stringify({mensagem}),
             });
             const data = await res.json();
@@ -1039,10 +1059,11 @@
         grid.innerHTML = '<div class="empty-state"><p style="color:#555">A carregar...</p></div>';
         try {
             const res = await fetch(`${API_URL}/api/gestao/bookings/`, {
-                headers: {"X-Gestao-Token": GESTAO_TOKEN}
+                headers: {"X-Gestao-Token": getGestaoToken()}
             });
+            if (res.status === 401) { logout(); return; }
             if (!res.ok) {
-                grid.innerHTML = `<div class="empty-state"><p style="color:#ff6b6b">Erro ${res.status} — token inválido ou servidor indisponível.</p></div>`;
+                grid.innerHTML = `<div class="empty-state"><p style="color:#ff6b6b">Erro ${res.status} — servidor indisponível.</p></div>`;
                 return;
             }
             const data = await res.json();
@@ -1059,7 +1080,7 @@
         try {
             await fetch(`${API_URL}/api/gestao/sync-calendar/`, {
                 method: 'POST',
-                headers: {"X-Gestao-Token": GESTAO_TOKEN}
+                headers: {"X-Gestao-Token": getGestaoToken()}
             });
         } catch { /* ignora erros silenciosos */ }
     }
@@ -1072,7 +1093,7 @@
         try {
             const res = await fetch(`${API_URL}/api/gestao/sync-calendar/`, {
                 method: 'POST',
-                headers: {"X-Gestao-Token": GESTAO_TOKEN}
+                headers: {"X-Gestao-Token": getGestaoToken()}
             });
             const data = await res.json();
             btn.textContent = `✓ ${data.eliminadas} eliminada(s)`;
@@ -1259,7 +1280,7 @@ ATXcyclingstore`;
         try {
             const res = await fetch(`${API_URL}/api/gestao/bookings/${id}/delete/`, {
                 method: 'DELETE',
-                headers: {"X-Gestao-Token": GESTAO_TOKEN}
+                headers: {"X-Gestao-Token": getGestaoToken()}
             });
             if (res.ok) {
                 document.getElementById(`row-${id}`).remove();
@@ -1285,7 +1306,7 @@ ATXcyclingstore`;
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Gestao-Token': GESTAO_TOKEN,
+                    'X-Gestao-Token': getGestaoToken(),
                 },
                 body: JSON.stringify({estado: novoEstado}),
             });

@@ -3,19 +3,41 @@ import os
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
+from django.core import signing
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import Cliente, Booking
-from .views import _entrega, MESES_PT
+from .views import _entrega, MESES_PT, check_gestao_auth, _GESTAO_SESSION_SALT
 from .signals import _resend_send
 
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://atxcyclingstore.vercel.app")
+
+
+class LoginRateThrottle(AnonRateThrottle):
+    scope = 'login'
+
+
+class GestaoLoginThrottle(AnonRateThrottle):
+    scope = 'gestao_login'
+
+
+class GestaoAuthView(APIView):
+    throttle_classes = [GestaoLoginThrottle]
+
+    def post(self, request):
+        password = request.data.get('password', '')
+        expected = os.environ.get('GESTAO_PASSWORD', '')
+        if not expected or password != expected:
+            return Response({'error': 'Password incorreta.'}, status=401)
+        token = signing.dumps({'gestao': True}, salt=_GESTAO_SESSION_SALT)
+        return Response({'token': token})
 
 
 # ---------------------------------------------------------------------------
@@ -63,6 +85,8 @@ class RegisterView(APIView):
 # ---------------------------------------------------------------------------
 
 class LoginView(APIView):
+    throttle_classes = [LoginRateThrottle]
+
     def post(self, request):
         from django.contrib.auth import authenticate
         email    = request.data.get('email', '').strip().lower()
@@ -179,9 +203,6 @@ def _parse_servico(mensagem):
 # SMS em massa (gestor)
 # ---------------------------------------------------------------------------
 
-from .views import GESTAO_TOKEN
-
-
 class DeleteAccountView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -193,8 +214,7 @@ class DeleteAccountView(APIView):
 
 class SmsBroadcastView(APIView):
     def post(self, request):
-        token = request.headers.get('X-Gestao-Token', '')
-        if token != GESTAO_TOKEN:
+        if not check_gestao_auth(request):
             return Response({'error': 'Não autorizado'}, status=401)
 
         mensagem = request.data.get('mensagem', '').strip()

@@ -23,6 +23,7 @@ from .auth_views import (
     PasswordResetRequestView,
     PasswordResetConfirmView,
     MinhaCancelarMarcacaoView,
+    GestaoAuthView,
 )
 
 urlpatterns = [
@@ -53,6 +54,7 @@ urlpatterns = [
     path('tracking/<str:numero>/', TrackingByNumeroView.as_view()),
 
     # gestão interna
+    path('gestao/auth/', GestaoAuthView.as_view()),
     path('gestao/bookings/', GestaoListView.as_view()),
     path('gestao/bookings/<int:booking_id>/estado/', GestaoUpdateEstadoView.as_view()),
     path('gestao/bookings/<int:booking_id>/delete/', CancelBookingView.as_view()),
