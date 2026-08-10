@@ -985,7 +985,7 @@
                 const bloqueada = d.vagas_total === 0;
                 const pct = d.vagas_total > 0 ? d.vagas_usadas / d.vagas_total : 1;
                 const badgeClass = bloqueada ? 'cheio' : pct >= 1 ? 'cheio' : pct >= 0.8 ? 'aviso' : 'ok';
-                const badgeText = bloqueada ? '🔒 Bloqueada' : `${d.vagas_usadas} / ${d.vagas_total} vagas`;
+                const badgeText = bloqueada ? 'Bloqueada' : `${d.vagas_usadas} / ${d.vagas_total} vagas`;
                 const labelHtml = bloqueada
                     ? `<div class="vaga-semana" style="text-decoration:line-through;opacity:0.5">${labelSemana(segunda)}</div>`
                     : `<div class="vaga-semana">${labelSemana(segunda)}</div>`;
