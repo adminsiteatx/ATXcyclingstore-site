@@ -98,11 +98,12 @@ class AvailableDaysView(APIView):
             sabado  = segunda + datetime.timedelta(days=5)
 
             capacidade  = get_capacidade(segunda)
+            bloqueada   = capacidade == 0
             total_db    = bookings_na_semana(segunda)
             total_cal   = _calendar_eventos_semana(segunda, sabado)
             total       = max(total_db, total_cal)
             disponiveis = max(0, capacidade - total)
-            cheia = disponiveis <= 0
+            cheia = bloqueada or disponiveis <= 0
 
             # terça (weekday 1) a sábado (weekday 5)
             for offset in range(1, 6):
@@ -116,6 +117,7 @@ class AvailableDaysView(APIView):
                     "disponiveis": disponiveis,
                     "capacidade":  capacidade,
                     "cheia":       cheia,
+                    "bloqueada":   bloqueada,
                 })
 
         return Response(dias)
@@ -350,6 +352,8 @@ class CapacidadeView(APIView):
         try:
             segunda = datetime.date.fromisoformat(semana_str)
             vagas_total = int(vagas_total)
+            if vagas_total < 0:
+                raise ValueError
         except (ValueError, TypeError):
             return Response({"error": "Dados inválidos"}, status=400)
 

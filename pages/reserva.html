@@ -324,7 +324,7 @@
             const segunda = new Date(dt);
             segunda.setDate(dt.getDate() - (dt.getDay() === 0 ? 6 : dt.getDay() - 1));
             const key = segunda.toISOString().split('T')[0];
-            if (!semanas.has(key)) semanas.set(key, { dias: [], disponiveis: d.disponiveis, cheia: d.cheia });
+            if (!semanas.has(key)) semanas.set(key, { dias: [], disponiveis: d.disponiveis, cheia: d.cheia, bloqueada: d.bloqueada });
             semanas.get(key).dias.push(d);
         });
 
@@ -348,8 +348,8 @@
         // header nav
         document.getElementById('navTitulo').textContent = `Semana de ${s.titulo}`;
         const vagasEl = document.getElementById('navVagas');
-        vagasEl.textContent = s.cheia ? 'Completa' : `${s.disponiveis} vaga${s.disponiveis !== 1 ? 's' : ''}`;
-        vagasEl.className = `semana-vagas ${s.cheia ? 'cheia' : s.disponiveis <= 2 ? 'poucas' : ''}`;
+        vagasEl.textContent = s.bloqueada ? '🔒 Encerrada' : s.cheia ? 'Completa' : `${s.disponiveis} vaga${s.disponiveis !== 1 ? 's' : ''}`;
+        vagasEl.className = `semana-vagas ${(s.bloqueada || s.cheia) ? 'cheia' : s.disponiveis <= 2 ? 'poucas' : ''}`;
 
         // setas
         document.getElementById('navAnterior').disabled = semanaAtual === 0;
@@ -360,6 +360,14 @@
         diasDiv.innerHTML = '';
         const chipsContainer = document.createElement('div');
         chipsContainer.className = 'dias-chips';
+
+        if (s.bloqueada) {
+            const aviso = document.createElement('p');
+            aviso.style.cssText = 'color:#ff6b6b;font-size:13px;margin:6px 0;opacity:0.7';
+            aviso.textContent = 'Loja encerrada esta semana.';
+            diasDiv.appendChild(aviso);
+            return;
+        }
 
         s.dias.forEach(d => {
             const partes = d.label.split(', ');

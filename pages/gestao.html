@@ -982,17 +982,21 @@
                     headers: {"X-Gestao-Token": getGestaoToken()}
                 });
                 const d = await res.json();
+                const bloqueada = d.vagas_total === 0;
                 const pct = d.vagas_total > 0 ? d.vagas_usadas / d.vagas_total : 1;
-                const badgeClass = pct >= 1 ? 'cheio' : pct >= 0.8 ? 'aviso' : 'ok';
-                const badgeText = `${d.vagas_usadas} / ${d.vagas_total} vagas`;
+                const badgeClass = bloqueada ? 'cheio' : pct >= 1 ? 'cheio' : pct >= 0.8 ? 'aviso' : 'ok';
+                const badgeText = bloqueada ? '🔒 Bloqueada' : `${d.vagas_usadas} / ${d.vagas_total} vagas`;
+                const labelHtml = bloqueada
+                    ? `<div class="vaga-semana" style="text-decoration:line-through;opacity:0.5">${labelSemana(segunda)}</div>`
+                    : `<div class="vaga-semana">${labelSemana(segunda)}</div>`;
 
                 grid.innerHTML += `
                 <div class="vaga-row">
-                    <div class="vaga-semana">${labelSemana(segunda)}</div>
+                    ${labelHtml}
                     <span class="vaga-badge ${badgeClass}">${badgeText}</span>
-                    <input class="vaga-input" type="number" min="1" max="99"
+                    <input class="vaga-input" type="number" min="0" max="99"
                         id="vaga-input-${semanaStr}" value="${d.vagas_total}">
-                    <button class="vaga-save-btn" onclick="guardarVagas('${semanaStr}')">Guardar</button>
+                    <button class="vaga-save-btn" onclick="guardarVagas('${semanaStr}')">${bloqueada ? 'Desbloquear' : 'Guardar'}</button>
                 </div>`;
             } catch {
                 grid.innerHTML += `<div class="vaga-row"><div class="vaga-semana">${labelSemana(segunda)}</div><span style="color:#555;font-size:13px">Erro ao carregar</span></div>`;
@@ -1003,7 +1007,7 @@
     async function guardarVagas(semanaStr) {
         const input = document.getElementById(`vaga-input-${semanaStr}`);
         const vagas = parseInt(input.value);
-        if (!vagas || vagas < 1) return;
+        if (isNaN(vagas) || vagas < 0) return;
 
         try {
             const res = await fetch(`${API_URL}/api/gestao/capacidade/`, {
@@ -1481,7 +1485,7 @@ ATXcyclingstore`;
             const segunda = new Date(dt);
             segunda.setDate(dt.getDate() - (dom === 0 ? 6 : dom - 1));
             const key = segunda.toISOString().split('T')[0];
-            if (!semanas.has(key)) semanas.set(key, { dias: [], disponiveis: d.disponiveis, cheia: d.cheia });
+            if (!semanas.has(key)) semanas.set(key, { dias: [], disponiveis: d.disponiveis, cheia: d.cheia, bloqueada: d.bloqueada });
             semanas.get(key).dias.push(d);
         });
 
@@ -1503,8 +1507,8 @@ ATXcyclingstore`;
         const s = nmSemanasLista[nmSemanaAtual];
         document.getElementById('nmNavTitulo').textContent = `Semana de ${s.titulo}`;
         const vagasEl = document.getElementById('nmNavVagas');
-        vagasEl.textContent = s.cheia ? 'Completa' : `${s.disponiveis} vaga${s.disponiveis !== 1 ? 's' : ''}`;
-        vagasEl.className = `nm-semana-vagas${s.cheia ? ' cheia' : s.disponiveis <= 2 ? ' poucas' : ''}`;
+        vagasEl.textContent = s.bloqueada ? '🔒 Encerrada' : s.cheia ? 'Completa' : `${s.disponiveis} vaga${s.disponiveis !== 1 ? 's' : ''}`;
+        vagasEl.className = `nm-semana-vagas${(s.bloqueada || s.cheia) ? ' cheia' : s.disponiveis <= 2 ? ' poucas' : ''}`;
         document.getElementById('nmNavAnterior').disabled = nmSemanaAtual === 0;
         document.getElementById('nmNavSeguinte').disabled = nmSemanaAtual === nmSemanasLista.length - 1;
 
@@ -1512,6 +1516,14 @@ ATXcyclingstore`;
         diasDiv.innerHTML = '';
         const chips = document.createElement('div');
         chips.className = 'nm-dias-chips';
+        if (s.bloqueada) {
+            const aviso = document.createElement('p');
+            aviso.style.cssText = 'color:#ff6b6b;font-size:13px;margin:6px 0;opacity:0.7';
+            aviso.textContent = 'Loja encerrada esta semana.';
+            diasDiv.appendChild(aviso);
+            return;
+        }
+
         s.dias.forEach(d => {
             const partes = d.label.split(', ');
             const labelCurto = (partes[0] || '') + ' ' + (partes[1] || '').split(' ')[0];
