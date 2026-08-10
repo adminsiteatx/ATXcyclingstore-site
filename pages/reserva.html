@@ -348,7 +348,7 @@
         // header nav
         document.getElementById('navTitulo').textContent = `Semana de ${s.titulo}`;
         const vagasEl = document.getElementById('navVagas');
-        vagasEl.textContent = s.bloqueada ? '🔒 Encerrada' : s.cheia ? 'Completa' : `${s.disponiveis} vaga${s.disponiveis !== 1 ? 's' : ''}`;
+        vagasEl.textContent = s.bloqueada ? 'Encerrada' : s.cheia ? 'Completa' : `${s.disponiveis} vaga${s.disponiveis !== 1 ? 's' : ''}`;
         vagasEl.className = `semana-vagas ${(s.bloqueada || s.cheia) ? 'cheia' : s.disponiveis <= 2 ? 'poucas' : ''}`;
 
         // setas

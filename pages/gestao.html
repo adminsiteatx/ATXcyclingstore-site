@@ -1507,7 +1507,7 @@ ATXcyclingstore`;
         const s = nmSemanasLista[nmSemanaAtual];
         document.getElementById('nmNavTitulo').textContent = `Semana de ${s.titulo}`;
         const vagasEl = document.getElementById('nmNavVagas');
-        vagasEl.textContent = s.bloqueada ? '🔒 Encerrada' : s.cheia ? 'Completa' : `${s.disponiveis} vaga${s.disponiveis !== 1 ? 's' : ''}`;
+        vagasEl.textContent = s.bloqueada ? 'Encerrada' : s.cheia ? 'Completa' : `${s.disponiveis} vaga${s.disponiveis !== 1 ? 's' : ''}`;
         vagasEl.className = `nm-semana-vagas${(s.bloqueada || s.cheia) ? ' cheia' : s.disponiveis <= 2 ? ' poucas' : ''}`;
         document.getElementById('nmNavAnterior').disabled = nmSemanaAtual === 0;
         document.getElementById('nmNavSeguinte').disabled = nmSemanaAtual === nmSemanasLista.length - 1;
