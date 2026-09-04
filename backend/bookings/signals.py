@@ -13,7 +13,7 @@ import json
 import resend
 
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://atxcyclingstore.vercel.app")
-DONO_EMAIL   = os.environ.get("DONO_EMAIL", "adminsiteatx@gmail.com")
+DONO_EMAIL   = os.environ.get("DONO_EMAIL", "atxcyclingstore@gmail.com")
 FROM_EMAIL   = os.environ.get("FROM_EMAIL", "ATXcyclingstore <marcacoes@atxcyclingstore.pt>")
 
 
@@ -105,7 +105,7 @@ def booking_deleted(sender, instance, **kwargs):
         )
         service = build("calendar", "v3", credentials=creds)
         service.events().delete(
-            calendarId="adminsiteatx@gmail.com",
+            calendarId="5db8c4f296ebc5df58acb2195ea703f01106e91a59660d47650ab2ce0c8afb30@group.calendar.google.com",
             eventId=instance.event_id
         ).execute()
         print("Evento apagado do calendar")

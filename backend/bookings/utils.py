@@ -40,7 +40,7 @@ def create_calendar_event(booking):
     }
 
     event = service.events().insert(
-        calendarId="adminsiteatx@gmail.com",
+        calendarId="5db8c4f296ebc5df58acb2195ea703f01106e91a59660d47650ab2ce0c8afb30@group.calendar.google.com",
         body=event
     ).execute()
 

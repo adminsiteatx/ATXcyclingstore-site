@@ -49,7 +49,7 @@ def _calendar_eventos_semana(inicio: datetime.date, fim: datetime.date) -> int:
         )
         service = build("calendar", "v3", credentials=creds)
         result = service.events().list(
-            calendarId="adminsiteatx@gmail.com",
+            calendarId="5db8c4f296ebc5df58acb2195ea703f01106e91a59660d47650ab2ce0c8afb30@group.calendar.google.com",
             timeMin=f"{inicio.isoformat()}T00:00:00+01:00",
             timeMax=f"{(fim + datetime.timedelta(days=1)).isoformat()}T00:00:00+01:00",
             singleEvents=True,
@@ -292,7 +292,7 @@ class SyncCalendarView(APIView):
         except Exception as e:
             return Response({"error": f"Erro ao ligar ao Calendar: {e}"}, status=500)
 
-        calendar_id = "adminsiteatx@gmail.com"
+        calendar_id = "5db8c4f296ebc5df58acb2195ea703f01106e91a59660d47650ab2ce0c8afb30@group.calendar.google.com"
         bookings = Booking.objects.exclude(event_id__isnull=True).exclude(event_id="")
         eliminadas = 0
 
