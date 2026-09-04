@@ -1507,22 +1507,33 @@ ATXcyclingstore`;
         const s = nmSemanasLista[nmSemanaAtual];
         document.getElementById('nmNavTitulo').textContent = `Semana de ${s.titulo}`;
         const vagasEl = document.getElementById('nmNavVagas');
-        vagasEl.textContent = s.bloqueada ? 'Encerrada' : s.cheia ? 'Completa' : `${s.disponiveis} vaga${s.disponiveis !== 1 ? 's' : ''}`;
-        vagasEl.className = `nm-semana-vagas${(s.bloqueada || s.cheia) ? ' cheia' : s.disponiveis <= 2 ? ' poucas' : ''}`;
+        if (s.bloqueada) {
+            vagasEl.textContent = 'Bloqueada — marcação manual';
+            vagasEl.className = 'nm-semana-vagas cheia';
+        } else if (s.cheia) {
+            vagasEl.textContent = `Cheia — 0 vagas livres`;
+            vagasEl.className = 'nm-semana-vagas cheia';
+        } else {
+            vagasEl.textContent = `${s.disponiveis} vaga${s.disponiveis !== 1 ? 's' : ''} livres`;
+            vagasEl.className = `nm-semana-vagas${s.disponiveis <= 2 ? ' poucas' : ''}`;
+        }
         document.getElementById('nmNavAnterior').disabled = nmSemanaAtual === 0;
         document.getElementById('nmNavSeguinte').disabled = nmSemanaAtual === nmSemanasLista.length - 1;
 
         const diasDiv = document.getElementById('nmSemanaDias');
         diasDiv.innerHTML = '';
+
+        if (s.bloqueada || s.cheia) {
+            const aviso = document.createElement('p');
+            aviso.style.cssText = 'color:#f0a500;font-size:12px;margin:0 0 8px 0';
+            aviso.textContent = s.bloqueada
+                ? 'Semana bloqueada — a marcação será adicionada manualmente fora do limite.'
+                : 'Semana cheia — a marcação excede a capacidade definida.';
+            diasDiv.appendChild(aviso);
+        }
+
         const chips = document.createElement('div');
         chips.className = 'nm-dias-chips';
-        if (s.bloqueada) {
-            const aviso = document.createElement('p');
-            aviso.style.cssText = 'color:#ff6b6b;font-size:13px;margin:6px 0;opacity:0.7';
-            aviso.textContent = 'Não aceitamos marcações para esta semana.';
-            diasDiv.appendChild(aviso);
-            return;
-        }
 
         s.dias.forEach(d => {
             const partes = d.label.split(', ');
@@ -1531,7 +1542,6 @@ ATXcyclingstore`;
             chip.type = 'button';
             chip.className = 'nm-dia-chip';
             chip.textContent = labelCurto.trim();
-            if (s.cheia) chip.disabled = true;
             chip.addEventListener('click', () => nmSelecionarDia(d, chip));
             chips.appendChild(chip);
         });
