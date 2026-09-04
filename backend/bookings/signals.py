@@ -14,7 +14,7 @@ import resend
 
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://atxcyclingstore.vercel.app")
 DONO_EMAIL   = os.environ.get("DONO_EMAIL", "adminsiteatx@gmail.com")
-FROM_EMAIL   = os.environ.get("FROM_EMAIL", "ATXcyclingstore <onboarding@resend.dev>")
+FROM_EMAIL   = os.environ.get("FROM_EMAIL", "ATXcyclingstore <marcacoes@atxcyclingstore.pt>")
 
 
 def _resend_send(to: str, subject: str, html: str):

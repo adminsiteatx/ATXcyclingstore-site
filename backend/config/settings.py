@@ -188,8 +188,8 @@ STORAGES = {
 }
 CORS_ALLOWED_ORIGINS = [
     "https://atxcyclingstore.vercel.app",
-    "https://simaocruzafonso.com",
-    "https://www.simaocruzafonso.com",
+    "https://atxcyclingstore.pt",
+    "https://www.atxcyclingstore.pt",
 ]
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
