@@ -1141,7 +1141,7 @@
             const match = msgRaw.match(/^\[([^\]]+)\]\s*([\s\S]*)$/);
             let servico = '', bicicleta = '', textoMsg = msgRaw;
             if (match) {
-                const partes = match[1].split(' — ');
+                const partes = match[1];
                 servico   = partes[0] || '';
                 bicicleta = partes[1] || '';
                 textoMsg  = match[2].trim();
