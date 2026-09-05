@@ -281,7 +281,6 @@
 <script>
     let diaEscolhido = null;  // objeto completo do dia escolhido
 
-    // ── Carregar dias disponíveis ─────────────────────────────────────────
     async function carregarDias() {
         const container = document.getElementById('semanasContainer');
         container.innerHTML = '<p style="color:#666;font-size:14px">A carregar disponibilidade...</p>';
@@ -404,7 +403,6 @@
         aviso.style.display = 'block';
     }
 
-    // ── Multistep form ────────────────────────────────────────────────────
     const steps = document.querySelectorAll('.form-step');
     const nextBtns = document.querySelectorAll('.next-step');
     const prevBtns = document.querySelectorAll('.prev-step');
@@ -455,7 +453,6 @@
         document.getElementById('resumoTelefone').textContent = document.getElementById('telefone').value || '—';
     }
 
-    // ── Submit ────────────────────────────────────────────────────────────
     document.getElementById('reservaForm').addEventListener('submit', async function (e) {
         e.preventDefault();
 
@@ -526,7 +523,6 @@
         }
     });
 
-    // ── Auth ──────────────────────────────────────────────────────────────
     const atxToken = localStorage.getItem('atx_access');
     if (!atxToken) {
         window.location.href = 'login.html?next=reserva.html';
@@ -548,7 +544,6 @@
         }).catch(() => {});
     }
 
-    // ── Init ──────────────────────────────────────────────────────────────
     carregarDias();
 </script>
 

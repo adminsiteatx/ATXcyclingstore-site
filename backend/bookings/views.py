@@ -13,7 +13,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 from .models import Booking, CapacidadeSemanal
-from .serializers import BookingSerializer, bookings_na_semana, get_capacidade, VAGAS_PADRAO
+from .serializers import BookingSerializer, bookings_na_semana, get_capacidade
 from .signals import _resend_send, FRONTEND_URL
 
 DIAS_PT = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]

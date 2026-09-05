@@ -1,7 +1,6 @@
 import os
 
 from django.contrib.auth.models import User
-from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core import signing
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -14,7 +13,7 @@ from rest_framework.throttling import AnonRateThrottle
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import Cliente, Booking
-from .views import _entrega, MESES_PT, check_gestao_auth, _GESTAO_SESSION_SALT
+from .views import _entrega, check_gestao_auth, _GESTAO_SESSION_SALT
 from .signals import _resend_send
 
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://atxcyclingstore.vercel.app")
@@ -161,7 +160,7 @@ def _parse_mensagem(mensagem):
     """Devolve só o texto livre, sem o prefixo '[Serviço — Bicicleta]'."""
     if mensagem and mensagem.startswith('['):
         try:
-            return mensagem[mensagem.index(']') + 1:].strip()
+            return mensagem[mensagem.index(']') + 1:].strip().lstrip('—').strip()
         except ValueError:
             pass
     return mensagem or ''

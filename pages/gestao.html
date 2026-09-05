@@ -893,7 +893,6 @@
     let allBookings = [];
     let filtroAtivo = 'todos';
 
-    // ── Auth via API ──────────────────────────────────────────────────────
     async function login() {
         const pass = document.getElementById('passwordInput').value;
         const errEl = document.getElementById('loginError');
@@ -938,7 +937,6 @@
         if (e.key === 'Enter') login();
     });
 
-    // ── Abas ─────────────────────────────────────────────────────────────
     function mudarAba(id, btn) {
         document.querySelectorAll('.aba-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.aba-content').forEach(c => c.classList.remove('active'));
@@ -947,7 +945,6 @@
         if (id === 'vagas') carregarVagas();
     }
 
-    // ── Gestão de Vagas ───────────────────────────────────────────────────
     const MESES_PT = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
 
     function segundaFeira(offset = 0) {
@@ -1021,7 +1018,6 @@
         } catch {}
     }
 
-    // ── SMS Broadcast ─────────────────────────────────────────────────────
     document.getElementById('smsMensagem')?.addEventListener('input', function () {
         document.getElementById('smsContador').textContent = `${this.value.length} caracteres`;
     });
@@ -1057,7 +1053,6 @@
         resultado.style.display = 'block';
     }
 
-    // ── Carregar marcações ────────────────────────────────────────────────
     async function carregar() {
         const grid = document.getElementById('bookingsGrid');
         grid.innerHTML = '<div class="empty-state"><p style="color:#555">A carregar...</p></div>';
@@ -1079,7 +1074,6 @@
         }
     }
 
-    // ── Sincronizar silencioso (ao carregar a página) ─────────────────────
     async function sincronizarESilencioso() {
         try {
             await fetch(`${API_URL}/api/gestao/sync-calendar/`, {
@@ -1089,7 +1083,6 @@
         } catch { /* ignora erros silenciosos */ }
     }
 
-    // ── Sincronizar Calendar → DB ─────────────────────────────────────────
     async function sincronizar() {
         const btn = document.getElementById('syncBtn');
         btn.textContent = 'A sincronizar...';
@@ -1112,7 +1105,6 @@
         }
     }
 
-    // ── Filtrar ───────────────────────────────────────────────────────────
     function filtrar(btn) {
         document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
@@ -1120,7 +1112,6 @@
         renderBookings();
     }
 
-    // ── Render ────────────────────────────────────────────────────────────
     function renderBookings() {
         const grid = document.getElementById('bookingsGrid');
         grid.innerHTML = '';
@@ -1196,7 +1187,6 @@
         });
     }
 
-    // ── Modal Diagnóstico ─────────────────────────────────────────────────
     let modalBookingId = null;
 
     function abrirModal(id) {
@@ -1337,7 +1327,6 @@ ATXcyclingstore`;
         }
     }
 
-    // ── NOVA MARCAÇÃO ──────────────────────────────────────────────────────
     const NM_MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
     let nmDiaEscolhido = null;
     let nmSemanasLista = [];
@@ -1449,7 +1438,7 @@ ATXcyclingstore`;
             const booking = await res.json();
             fecharModalNovaM();
             carregar();
-            alert(`✅ Marcação ${booking.numero_pedido} criada!\nEmail de confirmação enviado para ${dados.email}.`);
+            alert(`Marcação ${booking.numero_pedido} criada!\nEmail de confirmação enviado para ${dados.email}.`);
         } catch (e) {
             alert(e.message);
             btn.disabled = false;

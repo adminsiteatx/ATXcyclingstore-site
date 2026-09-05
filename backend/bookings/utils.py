@@ -46,22 +46,3 @@ def create_calendar_event(booking):
 
     booking.event_id = event["id"]
     booking.save(update_fields=["event_id"])
-
-
-def sync_with_calendar(service, calendar_id):
-    """Remove do DB marcações cujo evento foi apagado manualmente no Calendar."""
-    bookings = Booking.objects.exclude(event_id__isnull=True).exclude(event_id="")
-
-    for booking in bookings:
-        try:
-            event = service.events().get(
-                calendarId=calendar_id,
-                eventId=booking.event_id
-            ).execute()
-
-            if event.get("status") == "cancelled":
-                booking.delete()
-
-        except Exception as e:
-            print("EVENTO APAGADO:", booking.event_id, e)
-            booking.delete()

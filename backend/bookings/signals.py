@@ -48,7 +48,6 @@ def booking_created(sender, instance, created, **kwargs):
     numero_pedido = instance.numero_pedido or f"ATX-{instance.pk}"
     data_fmt      = instance.data.strftime("%d/%m/%Y")
 
-    # ── email ao cliente ──────────────────────────────────────────────────
     _resend_send(
         to=instance.email,
         subject=f"[{numero_pedido}] Marcação confirmada — ATXcyclingstore",
@@ -77,7 +76,6 @@ def booking_created(sender, instance, created, **kwargs):
         </div>""",
     )
 
-    # ── email ao dono ─────────────────────────────────────────────────────
     _resend_send(
         to=DONO_EMAIL,
         subject=f"Nova marcação: {numero_pedido} — {instance.nome}",
