@@ -853,7 +853,7 @@
                 <input type="email" id="nmEmail" placeholder="email@exemplo.com">
             </div>
             <div class="modal-field">
-                <label>Telefone *</label>
+                <label>Telefone (opcional)</label>
                 <input type="tel" id="nmTelefone" placeholder="+351 912 345 678">
             </div>
             <div class="modal-actions">
@@ -1378,8 +1378,7 @@ ATXcyclingstore`;
         } else if (from === 2) {
             const nome  = document.getElementById('nmNome').value.trim();
             const email = document.getElementById('nmEmail').value.trim();
-            const tel   = document.getElementById('nmTelefone').value.trim();
-            if (!nome || !email || !tel) { alert('Preenche todos os campos obrigatórios.'); return; }
+            if (!nome || !email) { alert('Preenche todos os campos obrigatórios.'); return; }
             nmPreencherResumo();
             nmMostrarStep(3);
         }
