@@ -209,19 +209,22 @@ def _email_html(numero_pedido, tracking_url, nome, titulo, corpo, rodape):
       <h2 style="color:#0077cc">{titulo}</h2>
       <p>Olá <strong>{nome}</strong>,</p>
       <p>{corpo}</p>
-      <div style="background:#f5f5f5;border-radius:8px;padding:16px 20px;margin:20px 0">
-        <p style="margin:0 0 6px 0"><strong>Nº de pedido:</strong> {numero_pedido}</p>
+      <div style="background:#f4f4f4;border-radius:8px;padding:16px;margin:24px 0">
+        <p style="margin:0 0 8px 0"><strong>Nº de pedido:</strong> {numero_pedido}</p>
         <p style="margin:0">{rodape}</p>
       </div>
       <a href="{tracking_url}"
          style="display:inline-block;background:#0077cc;color:white;padding:12px 24px;
-                border-radius:6px;text-decoration:none;font-weight:500;margin-top:8px">
+                border-radius:6px;text-decoration:none;font-weight:500">
         Acompanhar a minha bicicleta
       </a>
-      <p style="margin-top:24px;color:#555">
-        Com os melhores cumprimentos,<br>
-        <strong>ATXcyclingstore</strong>
+      <p style="margin-top:32px;font-size:13px;color:#888">
+        Também podes consultar em
+        <a href="{FRONTEND_URL}/pages/tracking.html">{FRONTEND_URL}/pages/tracking.html</a>
+        com o número <strong>{numero_pedido}</strong>.
       </p>
+      <hr style="margin-top:40px;border:none;border-top:1px solid #eee">
+      <p style="font-size:12px;color:#aaa">ATXcyclingstore · +351 918 583 829 · atxcyclingstore@gmail.com</p>
     </div>"""
 
 
