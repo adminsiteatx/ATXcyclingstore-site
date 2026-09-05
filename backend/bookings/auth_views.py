@@ -137,9 +137,10 @@ class MinhasMarcacoesView(APIView):
 
     def get(self, request):
         user = request.user
+        from django.db.models import Q
         bookings = Booking.objects.filter(
-            user=user
-        ).order_by('-criado_em')
+            Q(user=user) | Q(email=user.email)
+        ).distinct().order_by('-criado_em')
 
         data = [{
             'id':              b.id,
