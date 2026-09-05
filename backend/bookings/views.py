@@ -93,7 +93,7 @@ class AvailableDaysView(APIView):
         data_minima = hoje + datetime.timedelta(days=1) if agora.hour >= hora_fecho else hoje
         dias = []
 
-        for i in range(5):
+        for i in range(8):
             segunda = hoje - datetime.timedelta(days=hoje.weekday()) + datetime.timedelta(weeks=i)
             sabado  = segunda + datetime.timedelta(days=5)
 
