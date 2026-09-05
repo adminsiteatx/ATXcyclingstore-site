@@ -203,31 +203,70 @@ class GestaoListView(APIView):
 # Gestão — atualizar estado de uma marcação
 # ---------------------------------------------------------------------------
 
+def _email_html(numero_pedido, tracking_url, nome, titulo, corpo, rodape):
+    return f"""
+    <div style="font-family:sans-serif;max-width:600px;margin:auto;color:#111">
+      <h2 style="color:#0077cc">{titulo}</h2>
+      <p>Olá <strong>{nome}</strong>,</p>
+      <p>{corpo}</p>
+      <div style="background:#f5f5f5;border-radius:8px;padding:16px 20px;margin:20px 0">
+        <p style="margin:0 0 6px 0"><strong>Nº de pedido:</strong> {numero_pedido}</p>
+        <p style="margin:0">{rodape}</p>
+      </div>
+      <a href="{tracking_url}"
+         style="display:inline-block;background:#0077cc;color:white;padding:12px 24px;
+                border-radius:6px;text-decoration:none;font-weight:500;margin-top:8px">
+        Acompanhar a minha bicicleta
+      </a>
+      <p style="margin-top:24px;color:#555">
+        Com os melhores cumprimentos,<br>
+        <strong>ATXcyclingstore</strong>
+      </p>
+    </div>"""
+
+
+def _enviar_email_recebida(booking):
+    numero_pedido = booking.numero_pedido or f"ATX-{booking.pk}"
+    tracking_url  = f"{FRONTEND_URL}/pages/tracking.html?token={booking.token_tracking}"
+    _resend_send(
+        to=booking.email,
+        subject=f"[{numero_pedido}] A sua bicicleta foi recebida — ATXcyclingstore",
+        html=_email_html(
+            numero_pedido, tracking_url, booking.nome,
+            "A sua bicicleta foi recebida",
+            "A sua bicicleta foi recebida na nossa oficina e está a aguardar diagnóstico.",
+            "Acompanhe o estado em tempo real através do botão abaixo.",
+        ),
+    )
+
+
+def _enviar_email_reparacao(booking):
+    numero_pedido = booking.numero_pedido or f"ATX-{booking.pk}"
+    tracking_url  = f"{FRONTEND_URL}/pages/tracking.html?token={booking.token_tracking}"
+    _resend_send(
+        to=booking.email,
+        subject=f"[{numero_pedido}] A sua bicicleta está em reparação — ATXcyclingstore",
+        html=_email_html(
+            numero_pedido, tracking_url, booking.nome,
+            "A sua bicicleta está em reparação",
+            "A sua bicicleta já se encontra em reparação. Assim que estiver pronta iremos notificá-lo.",
+            "Acompanhe o estado em tempo real através do botão abaixo.",
+        ),
+    )
+
+
 def _enviar_email_pronta(booking):
     numero_pedido = booking.numero_pedido or f"ATX-{booking.pk}"
     tracking_url  = f"{FRONTEND_URL}/pages/tracking.html?token={booking.token_tracking}"
     _resend_send(
         to=booking.email,
         subject=f"[{numero_pedido}] A sua bicicleta está pronta — ATXcyclingstore",
-        html=f"""
-        <div style="font-family:sans-serif;max-width:600px;margin:auto;color:#111">
-          <h2 style="color:#0077cc">A sua bicicleta está pronta! 🚲</h2>
-          <p>Olá <strong>{booking.nome}</strong>,</p>
-          <p>Temos uma ótima notícia: a sua bicicleta já está pronta e pode ser levantada na loja.</p>
-          <div style="background:#f5f5f5;border-radius:8px;padding:16px 20px;margin:20px 0">
-            <p style="margin:0 0 6px 0"><strong>Nº de pedido:</strong> {numero_pedido}</p>
-            <p style="margin:0">Por favor traga este número quando vier levantar a bicicleta.</p>
-          </div>
-          <a href="{tracking_url}"
-             style="display:inline-block;background:#0077cc;color:white;padding:12px 24px;
-                    border-radius:6px;text-decoration:none;font-weight:500;margin-top:8px">
-            Ver estado da marcação
-          </a>
-          <p style="margin-top:24px;color:#555">
-            Aguardamos a sua visita.<br>
-            <strong>ATXcyclingstore</strong>
-          </p>
-        </div>""",
+        html=_email_html(
+            numero_pedido, tracking_url, booking.nome,
+            "A sua bicicleta está pronta",
+            "Temos uma ótima notícia: a sua bicicleta já está pronta e pode ser levantada na loja.",
+            "Por favor traga este número quando vier levantar a bicicleta.",
+        ),
     )
 
 
@@ -247,7 +286,11 @@ class GestaoUpdateEstadoView(APIView):
         booking.estado = novo_estado
         booking.save(update_fields=["estado"])
 
-        if novo_estado == "pronta":
+        if novo_estado == "recebida":
+            _enviar_email_recebida(booking)
+        elif novo_estado == "reparacao":
+            _enviar_email_reparacao(booking)
+        elif novo_estado == "pronta":
             _enviar_email_pronta(booking)
 
         return Response({
