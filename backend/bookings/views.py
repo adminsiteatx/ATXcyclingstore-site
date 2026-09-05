@@ -331,7 +331,10 @@ class CapacidadeView(APIView):
             return Response({"error": "Formato de data inválido"}, status=400)
 
         vagas_total = get_capacidade(segunda)
-        vagas_usadas = bookings_na_semana(segunda)
+        sabado = segunda + datetime.timedelta(days=5)
+        total_db  = bookings_na_semana(segunda)
+        total_cal = _calendar_eventos_semana(segunda, sabado)
+        vagas_usadas = max(total_db, total_cal)
 
         return Response({
             "semana": segunda.isoformat(),
