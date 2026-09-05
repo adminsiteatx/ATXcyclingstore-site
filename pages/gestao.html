@@ -1186,7 +1186,7 @@
           <div class="booking-detail" id="det-${b.id}">
             ${bicicleta ? `<div class="detail-item"><span class="detail-label">Bicicleta</span><span class="detail-value">${bicicleta}</span></div>` : ''}
             ${servico   ? `<div class="detail-item"><span class="detail-label">Serviço</span><span class="detail-value">${servico}</span></div>` : ''}
-            <div class="detail-item"><span class="detail-label">Mensagem do cliente</span><span class="detail-value">${textoMsg || '—'}</span></div>
+            <div class="detail-item"><span class="detail-label">Mensagem do cliente</span><span class="detail-value">${textoMsg}</span></div>
             <div class="detail-item"><span class="detail-label">Email</span><span class="detail-value">${b.email}</span></div>
             <button class="diag-btn" onclick="abrirModal(${b.id})">
               <i class="bi bi-clipboard2-pulse"></i> Enviar Diagnóstico
@@ -1511,10 +1511,10 @@ ATXcyclingstore`;
             vagasEl.textContent = 'Bloqueada — marcação manual';
             vagasEl.className = 'nm-semana-vagas cheia';
         } else if (s.cheia) {
-            vagasEl.textContent = `Cheia — 0 vagas livres`;
+            vagasEl.textContent = `Cheia — 0 vagas`;
             vagasEl.className = 'nm-semana-vagas cheia';
         } else {
-            vagasEl.textContent = `${s.disponiveis} vaga${s.disponiveis !== 1 ? 's' : ''} livres`;
+            vagasEl.textContent = `${s.disponiveis} vaga${s.disponiveis !== 1 ? 's' : ''}`;
             vagasEl.className = `nm-semana-vagas${s.disponiveis <= 2 ? ' poucas' : ''}`;
         }
         document.getElementById('nmNavAnterior').disabled = nmSemanaAtual === 0;
