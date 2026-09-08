@@ -334,6 +334,7 @@ class GestaoEditarBookingView(APIView):
             if campo in request.data:
                 setattr(booking, campo, request.data[campo])
 
+        data_mudou = False
         if "data" in request.data:
             try:
                 nova_data = datetime.date.fromisoformat(request.data["data"])
@@ -341,11 +342,46 @@ class GestaoEditarBookingView(APIView):
                     return Response({"error": "Sem marcações à segunda ou domingo."}, status=400)
                 if nova_data < datetime.date.today():
                     return Response({"error": "Não é possível marcar para uma data passada."}, status=400)
+                if nova_data != booking.data:
+                    data_mudou = True
                 booking.data = nova_data
             except ValueError:
                 return Response({"error": "Data inválida."}, status=400)
 
         booking.save()
+
+        if data_mudou:
+            try:
+                google_creds = json.loads(os.environ["GOOGLE_CREDENTIALS"])
+                creds = service_account.Credentials.from_service_account_info(
+                    google_creds,
+                    scopes=["https://www.googleapis.com/auth/calendar"]
+                )
+                service = build("calendar", "v3", credentials=creds)
+                CALENDAR_ID = "5db8c4f296ebc5df58acb2195ea703f01106e91a59660d47650ab2ce0c8afb30@group.calendar.google.com"
+
+                if booking.event_id:
+                    try:
+                        service.events().delete(calendarId=CALENDAR_ID, eventId=booking.event_id).execute()
+                    except Exception:
+                        pass
+
+                data_str = booking.data.isoformat()
+                slot = Booking.objects.filter(data=booking.data).exclude(pk=booking.pk).count()
+                hora_inicio = 9 + slot
+                hora_fim = hora_inicio + 1
+                event = {
+                    "summary": f"Marcação — {booking.nome}",
+                    "description": booking.mensagem or "",
+                    "start": {"dateTime": f"{data_str}T{hora_inicio:02d}:00:00", "timeZone": "Europe/Lisbon"},
+                    "end":   {"dateTime": f"{data_str}T{hora_fim:02d}:00:00",   "timeZone": "Europe/Lisbon"},
+                }
+                novo_evento = service.events().insert(calendarId=CALENDAR_ID, body=event).execute()
+                booking.event_id = novo_evento["id"]
+                booking.save(update_fields=["event_id"])
+            except Exception as e:
+                print("ERRO Calendar ao editar:", e)
+
         return Response({"ok": True})
 
 
