@@ -1018,39 +1018,51 @@
         return `${segunda.getDate()} ${MESES_PT[segunda.getMonth()]} – ${sabado.getDate()} ${MESES_PT[sabado.getMonth()]}`;
     }
 
+    let _vagasCarregando = false;
     async function carregarVagas() {
+        if (_vagasCarregando) return;
+        _vagasCarregando = true;
         const grid = document.getElementById('vagasGrid');
-        grid.innerHTML = '';
 
+        const promessas = [];
         for (let i = 0; i < 11; i++) {
             const segunda = segundaFeira(i);
             const semanaStr = isoDate(segunda);
-
-            try {
-                const res = await fetch(`${API_URL}/api/gestao/capacidade/?semana=${semanaStr}`, {
+            promessas.push(
+                fetch(`${API_URL}/api/gestao/capacidade/?semana=${semanaStr}`, {
                     headers: {"X-Gestao-Token": getGestaoToken()}
-                });
-                const d = await res.json();
-                const bloqueada = d.vagas_total === 0;
-                const pct = d.vagas_total > 0 ? d.vagas_usadas / d.vagas_total : 1;
-                const badgeClass = bloqueada ? 'cheio' : pct >= 1 ? 'cheio' : pct >= 0.8 ? 'aviso' : 'ok';
-                const badgeText = bloqueada ? 'Bloqueada' : `${d.vagas_usadas} / ${d.vagas_total} vagas`;
-                const labelHtml = bloqueada
-                    ? `<div class="vaga-semana" style="text-decoration:line-through;opacity:0.5">${labelSemana(segunda)}</div>`
-                    : `<div class="vaga-semana">${labelSemana(segunda)}</div>`;
-
-                grid.innerHTML += `
-                <div class="vaga-row">
-                    ${labelHtml}
-                    <span class="vaga-badge ${badgeClass}">${badgeText}</span>
-                    <input class="vaga-input" type="number" min="0" max="99"
-                        id="vaga-input-${semanaStr}" value="${d.vagas_total}">
-                    <button class="vaga-save-btn" onclick="guardarVagas('${semanaStr}')">${bloqueada ? 'Desbloquear' : 'Guardar'}</button>
-                </div>`;
-            } catch {
-                grid.innerHTML += `<div class="vaga-row"><div class="vaga-semana">${labelSemana(segunda)}</div><span style="color:#555;font-size:13px">Erro ao carregar</span></div>`;
-            }
+                })
+                .then(r => r.json())
+                .then(d => ({ semanaStr, segunda, d }))
+                .catch(() => ({ semanaStr, segunda, d: null }))
+            );
         }
+
+        const resultados = await Promise.all(promessas);
+        let html = '';
+        for (const { semanaStr, segunda, d } of resultados) {
+            if (!d) {
+                html += `<div class="vaga-row"><div class="vaga-semana">${labelSemana(segunda)}</div><span style="color:#555;font-size:13px">Erro ao carregar</span></div>`;
+                continue;
+            }
+            const bloqueada = d.vagas_total === 0;
+            const pct = d.vagas_total > 0 ? d.vagas_usadas / d.vagas_total : 1;
+            const badgeClass = bloqueada ? 'cheio' : pct >= 1 ? 'cheio' : pct >= 0.8 ? 'aviso' : 'ok';
+            const badgeText = bloqueada ? 'Bloqueada' : `${d.vagas_usadas} / ${d.vagas_total} vagas`;
+            const labelHtml = bloqueada
+                ? `<div class="vaga-semana" style="text-decoration:line-through;opacity:0.5">${labelSemana(segunda)}</div>`
+                : `<div class="vaga-semana">${labelSemana(segunda)}</div>`;
+            html += `
+            <div class="vaga-row">
+                ${labelHtml}
+                <span class="vaga-badge ${badgeClass}">${badgeText}</span>
+                <input class="vaga-input" type="number" min="0" max="99"
+                    id="vaga-input-${semanaStr}" value="${d.vagas_total}">
+                <button class="vaga-save-btn" onclick="guardarVagas('${semanaStr}')">${bloqueada ? 'Desbloquear' : 'Guardar'}</button>
+            </div>`;
+        }
+        grid.innerHTML = html;
+        _vagasCarregando = false;
     }
 
     async function guardarVagas(semanaStr) {
