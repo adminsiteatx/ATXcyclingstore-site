@@ -1657,10 +1657,12 @@ ATXcyclingstore`;
         editarBookingId = id;
 
         const msg = b.mensagem || '';
-        const partes = msg.match(/^\[([^\]]*)\]\s*\[([^\]]*)\]\s*[—\-]?\s*(.*)/s);
-        const servico = partes ? partes[1].trim() : '';
-        const bike = partes ? partes[2].trim() : '';
-        const obs = partes ? partes[3].trim() : msg;
+        const match = msg.match(/^\[([^\]]+)\]\s*([\s\S]*)$/);
+        const inner = match ? match[1] : '';
+        const innerPartes = inner.split(' — ');
+        const servico = innerPartes[0] ? innerPartes[0].trim() : '';
+        const bike = innerPartes[1] ? innerPartes[1].trim() : '';
+        const obs = match ? match[2].trim() : msg;
 
         document.getElementById('editNome').value = b.nome || '';
         document.getElementById('editEmail').value = b.email || '';
@@ -1688,7 +1690,7 @@ ATXcyclingstore`;
         const servico = document.getElementById('editServico').value;
         const bike = document.getElementById('editBike').value.trim();
         const obs = document.getElementById('editMensagem').value.trim();
-        const mensagem = `[${servico}] [${bike}] — ${obs}`;
+        const mensagem = `[${servico} — ${bike}] ${obs}`;
 
         const body = {
             nome: document.getElementById('editNome').value.trim(),
