@@ -1023,6 +1023,7 @@
         if (_vagasCarregando) return;
         _vagasCarregando = true;
         const grid = document.getElementById('vagasGrid');
+        grid.innerHTML = '<div class="empty-state"><p style="color:#555">A carregar...</p></div>';
 
         const promessas = [];
         for (let i = 0; i < 11; i++) {
@@ -1725,6 +1726,7 @@ ATXcyclingstore`;
             }
             fecharEditar();
             await carregar();
+            carregarVagas();
         } catch {
             alert('Erro de rede.');
         }
