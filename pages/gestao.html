@@ -1483,7 +1483,7 @@ ATXcyclingstore`;
         try {
             const res = await fetch(`${API_URL}/api/bookings/`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-Gestao-Token': getGestaoToken() },
                 body: JSON.stringify(dados),
             });
             if (!res.ok) {
