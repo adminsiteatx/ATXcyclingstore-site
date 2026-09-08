@@ -66,16 +66,42 @@ def _calendar_eventos_semana(inicio: datetime.date, fim: datetime.date) -> int:
 
 class GestaoClientesView(APIView):
     def get(self, request):
+        from django.contrib.auth.models import User
         if not check_gestao_auth(request):
             return Response({"error": "Não autorizado"}, status=401)
         q = request.query_params.get("q", "").strip()
         if not q:
             return Response([])
+
+        vistos = {}
+
         bookings = (
-            Booking.objects
-            .filter(nome__icontains=q) | Booking.objects.filter(email__icontains=q)
-        ).values("nome", "email", "telefone").distinct().order_by("nome")[:10]
-        return Response(list(bookings))
+            Booking.objects.filter(nome__icontains=q) | Booking.objects.filter(email__icontains=q)
+        ).values("nome", "email", "telefone").order_by("-id")
+        for b in bookings:
+            email = (b["email"] or "").lower()
+            if email and email not in vistos:
+                vistos[email] = {"nome": b["nome"], "email": b["email"], "telefone": b["telefone"] or ""}
+            elif not email:
+                key = b["nome"].lower()
+                if key not in vistos:
+                    vistos[key] = {"nome": b["nome"], "email": b["email"] or "", "telefone": b["telefone"] or ""}
+
+        users = User.objects.filter(
+            first_name__icontains=q
+        ) | User.objects.filter(
+            last_name__icontains=q
+        ) | User.objects.filter(
+            email__icontains=q
+        )
+        for u in users.order_by("first_name")[:50]:
+            email = (u.email or "").lower()
+            if email and email not in vistos:
+                nome = f"{u.first_name} {u.last_name}".strip() or u.username
+                vistos[email] = {"nome": nome, "email": u.email, "telefone": ""}
+
+        resultado = sorted(vistos.values(), key=lambda x: x["nome"].lower())[:50]
+        return Response(resultado)
 
 
 class BookingCreateView(generics.CreateAPIView):
