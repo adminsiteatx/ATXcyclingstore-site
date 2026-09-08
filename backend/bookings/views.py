@@ -64,6 +64,20 @@ def _calendar_eventos_semana(inicio: datetime.date, fim: datetime.date) -> int:
 # Criar marcação
 # ---------------------------------------------------------------------------
 
+class GestaoClientesView(APIView):
+    def get(self, request):
+        if not check_gestao_auth(request):
+            return Response({"error": "Não autorizado"}, status=401)
+        q = request.query_params.get("q", "").strip()
+        if not q:
+            return Response([])
+        bookings = (
+            Booking.objects
+            .filter(nome__icontains=q) | Booking.objects.filter(email__icontains=q)
+        ).values("nome", "email", "telefone").distinct().order_by("nome")[:10]
+        return Response(list(bookings))
+
+
 class BookingCreateView(generics.CreateAPIView):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
@@ -306,6 +320,33 @@ class GestaoUpdateEstadoView(APIView):
             "estado": booking.estado,
             "estado_label": booking.get_estado_display(),
         })
+
+
+class GestaoEditarBookingView(APIView):
+    def patch(self, request, booking_id):
+        if not check_gestao_auth(request):
+            return Response({"error": "Não autorizado"}, status=401)
+
+        booking = get_object_or_404(Booking, id=booking_id)
+
+        campos = ["nome", "email", "telefone", "mensagem"]
+        for campo in campos:
+            if campo in request.data:
+                setattr(booking, campo, request.data[campo])
+
+        if "data" in request.data:
+            try:
+                nova_data = datetime.date.fromisoformat(request.data["data"])
+                if nova_data.weekday() in (0, 6):
+                    return Response({"error": "Sem marcações à segunda ou domingo."}, status=400)
+                if nova_data < datetime.date.today():
+                    return Response({"error": "Não é possível marcar para uma data passada."}, status=400)
+                booking.data = nova_data
+            except ValueError:
+                return Response({"error": "Data inválida."}, status=400)
+
+        booking.save()
+        return Response({"ok": True})
 
 
 # ---------------------------------------------------------------------------

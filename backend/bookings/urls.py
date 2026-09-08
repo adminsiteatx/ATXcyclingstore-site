@@ -7,9 +7,11 @@ from .views import (
     TrackingByNumeroView,
     GestaoListView,
     GestaoUpdateEstadoView,
+    GestaoEditarBookingView,
     CancelBookingView,
     SyncCalendarView,
     CapacidadeView,
+    GestaoClientesView,
 )
 from .auth_views import (
     RegisterView,
@@ -57,8 +59,10 @@ urlpatterns = [
     path('gestao/auth/', GestaoAuthView.as_view()),
     path('gestao/bookings/', GestaoListView.as_view()),
     path('gestao/bookings/<int:booking_id>/estado/', GestaoUpdateEstadoView.as_view()),
+    path('gestao/bookings/<int:booking_id>/editar/', GestaoEditarBookingView.as_view()),
     path('gestao/bookings/<int:booking_id>/delete/', CancelBookingView.as_view()),
     path('gestao/sync-calendar/', SyncCalendarView.as_view()),
     path('gestao/capacidade/', CapacidadeView.as_view()),
+    path('gestao/clientes/', GestaoClientesView.as_view()),
     path('gestao/sms-broadcast/', SmsBroadcastView.as_view()),
 ]

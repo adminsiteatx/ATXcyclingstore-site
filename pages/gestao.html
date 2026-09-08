@@ -781,6 +781,57 @@
     </div>
 </div>
 
+<!-- MODAL EDITAR MARCAÇÃO -->
+<div class="modal-overlay" id="modalEditarOverlay">
+    <div class="modal" style="max-width:520px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+            <h2 style="margin:0">Editar Marcação</h2>
+            <button onclick="fecharEditar()" style="background:none;border:none;color:#666;font-size:22px;cursor:pointer;line-height:1;padding:4px 8px;border-radius:6px;transition:color 0.2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#666'">✕</button>
+        </div>
+        <div class="modal-field">
+            <label>Nome completo *</label>
+            <input type="text" id="editNome" placeholder="Nome do cliente">
+        </div>
+        <div class="modal-field">
+            <label>Email *</label>
+            <input type="email" id="editEmail" placeholder="email@exemplo.com">
+        </div>
+        <div class="modal-field">
+            <label>Telefone</label>
+            <input type="tel" id="editTelefone" placeholder="+351 912 345 678">
+        </div>
+        <div class="modal-field">
+            <label>Tipo de serviço</label>
+            <select id="editServico" style="width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:10px 14px;color:white;font-family:'Poppins',sans-serif;font-size:14px;appearance:none;-webkit-appearance:none;cursor:pointer">
+                <option>Revisão Simples</option>
+                <option>Revisão Básica</option>
+                <option>Revisão Completa BTT (rígida)</option>
+                <option>Revisão Completa BTT (suspensão total)</option>
+                <option>Revisão Completa Estrada</option>
+                <option>Revisão Completa E-Bike</option>
+                <option>Suspensão</option>
+                <option>Outro serviço</option>
+            </select>
+        </div>
+        <div class="modal-field">
+            <label>Modelo da bicicleta</label>
+            <input type="text" id="editBike" placeholder="Marca e modelo">
+        </div>
+        <div class="modal-field">
+            <label>Observações</label>
+            <textarea id="editMensagem" rows="3" placeholder="Observações..."></textarea>
+        </div>
+        <div class="modal-field">
+            <label>Data da marcação</label>
+            <input type="date" id="editData" style="width:100%;background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:10px 14px;color:white;font-family:'Poppins',sans-serif;font-size:14px">
+        </div>
+        <div class="modal-actions">
+            <button class="modal-gmail-btn" onclick="guardarEdicao()">Guardar</button>
+            <button class="modal-cancel-btn" onclick="fecharEditar()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL NOVA MARCAÇÃO -->
 <div class="modal-overlay" id="modalNovaMOverlay">
     <div class="modal" style="max-width:580px">
@@ -844,9 +895,10 @@
 
         <!-- Passo 2: Dados -->
         <div class="nm-form-step" id="nmFormStep2">
-            <div class="modal-field">
+            <div class="modal-field" style="position:relative">
                 <label>Nome completo *</label>
-                <input type="text" id="nmNome" placeholder="Nome do cliente">
+                <input type="text" id="nmNome" placeholder="Nome do cliente" autocomplete="off" oninput="nmAutocompleteBuscar(this.value)">
+                <div id="nmSugestoes" style="display:none;position:absolute;top:100%;left:0;right:0;background:#1a1a1a;border:1px solid #333;border-radius:6px;z-index:100;max-height:200px;overflow-y:auto;margin-top:2px"></div>
             </div>
             <div class="modal-field">
                 <label>Email *</label>
@@ -1165,6 +1217,10 @@
             </select>
             <button class="save-btn" id="save-${b.id}" onclick="guardarEstado(${b.id})">
               Guardar alteração
+            </button>
+            <button class="save-btn visible" onclick="abrirEditar(${b.id})"
+              style="background:#0a1a2a;color:#4da6ff;border-color:#1a4a7a;margin-top:4px">
+              <i class="bi bi-pencil"></i> Editar
             </button>
             <button class="save-btn visible" id="del-${b.id}" onclick="eliminar(${b.id})"
               style="background:#2a0a0a;color:#ff6b6b;border-color:#5a1a1a;margin-top:4px">
@@ -1552,6 +1608,112 @@ ATXcyclingstore`;
         const aviso = document.getElementById('nmAvisoEntrega');
         aviso.textContent = `Entrega prevista: ${dia.entrega}`;
         aviso.style.display = 'block';
+    }
+
+    let nmAutoTimer = null;
+    async function nmAutocompleteBuscar(q) {
+        const sugestoesEl = document.getElementById('nmSugestoes');
+        if (q.length < 1) { sugestoesEl.style.display = 'none'; return; }
+        clearTimeout(nmAutoTimer);
+        nmAutoTimer = setTimeout(async () => {
+            try {
+                const res = await fetch(`${API_URL}/api/gestao/clientes/?q=${encodeURIComponent(q)}`, {
+                    headers: { 'X-Gestao-Token': getGestaoToken() }
+                });
+                const lista = await res.json();
+                if (!lista.length) { sugestoesEl.style.display = 'none'; return; }
+                sugestoesEl.innerHTML = '';
+                lista.forEach(c => {
+                    const item = document.createElement('div');
+                    item.style.cssText = 'padding:10px 14px;cursor:pointer;border-bottom:1px solid #222;font-size:13px';
+                    item.innerHTML = `<span style="color:white;font-weight:500">${c.nome}</span> <span style="color:#666;font-size:12px">${c.email}</span>`;
+                    item.addEventListener('mousedown', () => {
+                        document.getElementById('nmNome').value = c.nome;
+                        document.getElementById('nmEmail').value = c.email;
+                        document.getElementById('nmTelefone').value = c.telefone || '';
+                        sugestoesEl.style.display = 'none';
+                    });
+                    item.addEventListener('mouseover', () => item.style.background = '#222');
+                    item.addEventListener('mouseout',  () => item.style.background = '');
+                    sugestoesEl.appendChild(item);
+                });
+                sugestoesEl.style.display = 'block';
+            } catch { sugestoesEl.style.display = 'none'; }
+        }, 200);
+    }
+
+    document.addEventListener('click', e => {
+        if (!e.target.closest('#nmNome') && !e.target.closest('#nmSugestoes')) {
+            const el = document.getElementById('nmSugestoes');
+            if (el) el.style.display = 'none';
+        }
+    });
+
+    let editarBookingId = null;
+
+    function abrirEditar(id) {
+        const b = allBookings.find(x => x.id === id);
+        if (!b) return;
+        editarBookingId = id;
+
+        const msg = b.mensagem || '';
+        const partes = msg.match(/^\[([^\]]*)\]\s*\[([^\]]*)\]\s*[—\-]?\s*(.*)/s);
+        const servico = partes ? partes[1].trim() : '';
+        const bike = partes ? partes[2].trim() : '';
+        const obs = partes ? partes[3].trim() : msg;
+
+        document.getElementById('editNome').value = b.nome || '';
+        document.getElementById('editEmail').value = b.email || '';
+        document.getElementById('editTelefone').value = b.telefone || '';
+        document.getElementById('editBike').value = bike;
+        document.getElementById('editMensagem').value = obs;
+        document.getElementById('editData').value = b.data || '';
+
+        const sel = document.getElementById('editServico');
+        for (let opt of sel.options) {
+            if (opt.value === servico || opt.text === servico) { sel.value = opt.value; break; }
+        }
+
+        document.getElementById('modalEditarOverlay').style.display = 'flex';
+    }
+
+    function fecharEditar() {
+        document.getElementById('modalEditarOverlay').style.display = 'none';
+        editarBookingId = null;
+    }
+
+    async function guardarEdicao() {
+        if (!editarBookingId) return;
+        const token = sessionStorage.getItem('gestao_token');
+        const servico = document.getElementById('editServico').value;
+        const bike = document.getElementById('editBike').value.trim();
+        const obs = document.getElementById('editMensagem').value.trim();
+        const mensagem = `[${servico}] [${bike}] — ${obs}`;
+
+        const body = {
+            nome: document.getElementById('editNome').value.trim(),
+            email: document.getElementById('editEmail').value.trim(),
+            telefone: document.getElementById('editTelefone').value.trim(),
+            mensagem,
+            data: document.getElementById('editData').value,
+        };
+
+        try {
+            const r = await fetch(`${API_URL}/api/gestao/bookings/${editarBookingId}/editar/`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'X-Gestao-Token': token },
+                body: JSON.stringify(body),
+            });
+            if (!r.ok) {
+                const err = await r.json();
+                alert(err.error || 'Erro ao guardar.');
+                return;
+            }
+            fecharEditar();
+            await carregar();
+        } catch {
+            alert('Erro de rede.');
+        }
     }
 </script>
 
