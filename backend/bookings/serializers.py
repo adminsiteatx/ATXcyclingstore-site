@@ -43,14 +43,14 @@ class BookingSerializer(serializers.ModelSerializer):
                 "Não fazemos marcações à segunda-feira nem ao domingo."
             )
 
-        # verificar capacidade da semana
-        segunda = value - datetime.timedelta(days=value.weekday())
-        capacidade = get_capacidade(segunda)
-        total = bookings_na_semana(value)
-
-        if total >= capacidade:
-            raise serializers.ValidationError(
-                f"Sem disponibilidade para esta semana."
-            )
+        # verificar capacidade da semana (ignorar se for marcação da gestão)
+        if not self.context.get('gestao'):
+            segunda = value - datetime.timedelta(days=value.weekday())
+            capacidade = get_capacidade(segunda)
+            total = bookings_na_semana(value)
+            if total >= capacidade:
+                raise serializers.ValidationError(
+                    "Sem disponibilidade para esta semana."
+                )
 
         return value

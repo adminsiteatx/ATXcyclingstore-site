@@ -68,6 +68,11 @@ class BookingCreateView(generics.CreateAPIView):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['gestao'] = check_gestao_auth(self.request)
+        return context
+
     def perform_create(self, serializer):
         user = None
         try:
