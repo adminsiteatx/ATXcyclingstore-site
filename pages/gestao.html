@@ -1344,6 +1344,7 @@ ATXcyclingstore`;
             if (res.ok) {
                 document.getElementById(`row-${id}`).remove();
                 allBookings = allBookings.filter(b => b.id !== id);
+                carregarVagas();
             } else {
                 btn.textContent = 'Erro';
                 btn.disabled = false;
@@ -1733,9 +1734,7 @@ ATXcyclingstore`;
                 btn.disabled = false;
             }, 800);
             await carregar();
-            if (document.getElementById('aba-vagas')?.classList.contains('active')) {
-                carregarVagas();
-            }
+            carregarVagas();
         } catch {
             btn.textContent = 'Guardar';
             btn.disabled = false;
