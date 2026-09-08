@@ -1696,6 +1696,10 @@ ATXcyclingstore`;
     async function guardarEdicao() {
         if (!editarBookingId) return;
         const token = sessionStorage.getItem('gestao_token');
+        const btn = document.querySelector('#modalEditarOverlay .modal-gmail-btn');
+        btn.textContent = 'A guardar...';
+        btn.disabled = true;
+
         const servico = document.getElementById('editServico').value;
         const bike = document.getElementById('editBike').value.trim();
         const obs = document.getElementById('editMensagem').value.trim();
@@ -1717,13 +1721,24 @@ ATXcyclingstore`;
             });
             if (!r.ok) {
                 const err = await r.json();
+                btn.textContent = 'Guardar';
+                btn.disabled = false;
                 alert(err.error || 'Erro ao guardar.');
                 return;
             }
-            fecharEditar();
+            btn.textContent = 'Guardado!';
+            setTimeout(() => {
+                fecharEditar();
+                btn.textContent = 'Guardar';
+                btn.disabled = false;
+            }, 800);
             await carregar();
-            carregarVagas();
+            if (document.getElementById('aba-vagas')?.classList.contains('active')) {
+                carregarVagas();
+            }
         } catch {
+            btn.textContent = 'Guardar';
+            btn.disabled = false;
             alert('Erro de rede.');
         }
     }
