@@ -1018,10 +1018,7 @@
         return `${segunda.getDate()} ${MESES_PT[segunda.getMonth()]} – ${sabado.getDate()} ${MESES_PT[sabado.getMonth()]}`;
     }
 
-    let _vagasCarregando = false;
     async function carregarVagas() {
-        if (_vagasCarregando) return;
-        _vagasCarregando = true;
         const grid = document.getElementById('vagasGrid');
         grid.innerHTML = '<div class="empty-state"><p style="color:#555">A carregar...</p></div>';
 
@@ -1063,7 +1060,6 @@
             </div>`;
         }
         grid.innerHTML = html;
-        _vagasCarregando = false;
     }
 
     async function guardarVagas(semanaStr) {
