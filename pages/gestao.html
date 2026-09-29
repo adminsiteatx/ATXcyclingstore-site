@@ -1244,6 +1244,7 @@
             ${servico   ? `<div class="detail-item"><span class="detail-label">Serviço</span><span class="detail-value">${servico}</span></div>` : ''}
             <div class="detail-item"><span class="detail-label">Mensagem do cliente</span><span class="detail-value">${textoMsg}</span></div>
             <div class="detail-item"><span class="detail-label">Email</span><span class="detail-value">${b.email}</span></div>
+            ${b.telefone ? `<div class="detail-item"><span class="detail-label">Telefone</span><span class="detail-value">${b.telefone}</span></div>` : ''}
             <button class="diag-btn" onclick="abrirModal(${b.id})">
               <i class="bi bi-clipboard2-pulse"></i> Enviar Diagnóstico
             </button>
