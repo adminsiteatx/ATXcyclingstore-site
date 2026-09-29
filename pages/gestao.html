@@ -710,7 +710,11 @@
         </div>
 
         <div class="aba-content active" id="aba-marcacoes">
-            <div style="display:flex;justify-content:flex-end">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:4px">
+                <input type="text" id="pesquisaMarcacoes" placeholder="Pesquisar por nome, email ou nº pedido..."
+                    oninput="pesquisarMarcacoes(this.value)"
+                    style="flex:1;max-width:360px;background:#111;border:1px solid #333;border-radius:8px;padding:10px 14px;color:white;font-family:'Poppins',sans-serif;font-size:14px;outline:none"
+                    onfocus="this.style.borderColor='#0077cc'" onblur="this.style.borderColor='#333'">
                 <button class="btn-nova-m" onclick="abrirModalNovaM()">
                     <i class="bi bi-plus-lg"></i> Nova Marcação
                 </button>
@@ -1166,6 +1170,13 @@
         }
     }
 
+    let termoPesquisa = '';
+
+    function pesquisarMarcacoes(q) {
+        termoPesquisa = q.trim().toLowerCase();
+        renderBookings();
+    }
+
     function filtrar(btn) {
         document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
@@ -1177,12 +1188,20 @@
         const grid = document.getElementById('bookingsGrid');
         grid.innerHTML = '';
 
-        const lista = filtroAtivo === 'todos'
+        let lista = filtroAtivo === 'todos'
             ? allBookings
             : allBookings.filter(b => b.estado === filtroAtivo);
 
+        if (termoPesquisa) {
+            lista = allBookings.filter(b =>
+                (b.nome || '').toLowerCase().includes(termoPesquisa) ||
+                (b.email || '').toLowerCase().includes(termoPesquisa) ||
+                (b.numero_pedido || '').toLowerCase().includes(termoPesquisa)
+            );
+        }
+
         if (lista.length === 0) {
-            grid.innerHTML = '<div class="empty-state"><p>Sem marcações neste estado.</p></div>';
+            grid.innerHTML = '<div class="empty-state"><p>Sem marcações encontradas.</p></div>';
             return;
         }
 
